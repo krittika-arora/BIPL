@@ -1,0 +1,17 @@
+{
+  "name": "coursetrack",
+  "version": "0.1.0",
+  "description": "Internal training platform: instructors build and publish courses, learners work through them, progress is tracked automatically.",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js",
+    "seed": "node scripts/seed.js"
+  },
+  "engines": {
+    "node": ">=20.12"
+  },
+  "author": "Krittika",
+  "license": "MIT"
+}
