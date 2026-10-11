@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const HttpError = require('../utils/httpError');
 
 // Loads the signed-in user (if any) on every request so routes and views can use it.
 async function loadCurrentUser(req, res, next) {
@@ -26,9 +27,20 @@ function requireAuth(req, res, next) {
   next();
 }
 
+// Server-side role gate. Hiding a button is not enough: every protected route uses this.
+function requireRole(...roles) {
+  return (req, res, next) => {
+    if (!req.user) return requireAuth(req, res, next);
+    if (!roles.includes(req.user.role)) {
+      return next(new HttpError(403, 'You do not have permission to do that.'));
+    }
+    next();
+  };
+}
+
 function guestOnly(req, res, next) {
   if (req.user) return res.redirect('/');
   next();
 }
 
-module.exports = { loadCurrentUser, requireAuth, guestOnly };
+module.exports = { loadCurrentUser, requireAuth, requireRole, guestOnly };

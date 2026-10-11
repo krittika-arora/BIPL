@@ -1,0 +1,46 @@
+<%- include('../partials/header') %>
+<% const isInstructor = currentUser.role === 'instructor'; %>
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">Courses</h1>
+  <% if (isInstructor) { %>
+    <a href="/courses/new" class="btn btn-primary">New course</a>
+  <% } %>
+</div>
+
+<% if (!courses.length) { %>
+  <div class="bg-white border rounded-3 p-4 text-center text-muted">
+    <% if (isInstructor) { %>
+      No courses yet. <a href="/courses/new">Create the first one</a>.
+    <% } else { %>
+      No courses have been published yet. Check back soon.
+    <% } %>
+  </div>
+<% } else { %>
+  <div class="table-responsive bg-white border rounded-3">
+    <table class="table table-hover mb-0">
+      <thead class="table-light">
+        <tr>
+          <th scope="col">Title</th>
+          <th scope="col">Category</th>
+          <% if (isInstructor) { %><th scope="col">Status</th><% } %>
+          <th scope="col">Instructor</th>
+          <th scope="col">Created</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% courses.forEach((course) => { %>
+          <tr>
+            <td><a href="/courses/<%= course._id %>" class="fw-semibold text-decoration-none"><%= course.title %></a></td>
+            <td><%= course.category %></td>
+            <% if (isInstructor) { %>
+              <td><span class="badge text-capitalize <%= statusBadge(course.status) %>"><%= course.status %></span></td>
+            <% } %>
+            <td><%= course.instructor ? course.instructor.name : '—' %></td>
+            <td class="text-nowrap"><%= formatDate(course.createdAt) %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+<% } %>
+<%- include('../partials/footer') %>

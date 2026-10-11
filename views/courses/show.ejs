@@ -1,0 +1,28 @@
+<%- include('../partials/header') %>
+<% const isInstructor = currentUser.role === 'instructor'; %>
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/courses">Courses</a></li>
+    <li class="breadcrumb-item active" aria-current="page"><%= course.title %></li>
+  </ol>
+</nav>
+
+<div class="bg-white border rounded-3 p-4 mb-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
+    <div>
+      <h1 class="h3 mb-1"><%= course.title %></h1>
+      <div class="text-muted small">
+        <%= course.category %> &middot; by <%= course.instructor ? course.instructor.name : 'Unknown' %>
+        &middot; created <%= formatDate(course.createdAt) %>
+      </div>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <% if (isInstructor) { %>
+        <span class="badge text-capitalize <%= statusBadge(course.status) %>"><%= course.status %></span>
+        <a href="/courses/<%= course._id %>/edit" class="btn btn-outline-primary btn-sm">Edit</a>
+      <% } %>
+    </div>
+  </div>
+  <p class="text-pre-line mb-0"><%= course.description %></p>
+</div>
+<%- include('../partials/footer') %>

@@ -1,0 +1,22 @@
+<div class="mb-3">
+  <label for="title" class="form-label">Title</label>
+  <input type="text" id="title" name="title" maxlength="120" required
+         class="form-control <%= errors.title ? 'is-invalid' : '' %>" value="<%= values.title || '' %>">
+  <% if (errors.title) { %><div class="invalid-feedback"><%= errors.title %></div><% } %>
+</div>
+<div class="mb-3">
+  <label for="category" class="form-label">Category</label>
+  <select id="category" name="category" required class="form-select <%= errors.category ? 'is-invalid' : '' %>">
+    <option value="">Choose a category</option>
+    <% categories.forEach((category) => { %>
+      <option value="<%= category %>" <%= values.category === category ? 'selected' : '' %>><%= category %></option>
+    <% }) %>
+  </select>
+  <% if (errors.category) { %><div class="invalid-feedback"><%= errors.category %></div><% } %>
+</div>
+<div class="mb-3">
+  <label for="description" class="form-label">Description</label>
+  <textarea id="description" name="description" rows="5" maxlength="2000" required
+            class="form-control <%= errors.description ? 'is-invalid' : '' %>"><%= values.description || '' %></textarea>
+  <% if (errors.description) { %><div class="invalid-feedback"><%= errors.description %></div><% } %>
+</div>

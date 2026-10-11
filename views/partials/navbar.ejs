@@ -11,6 +11,9 @@
           <li class="nav-item">
             <a class="nav-link <%= currentPath === '/' ? 'active' : '' %>" href="/">Home</a>
           </li>
+          <li class="nav-item">
+            <a class="nav-link <%= currentPath.startsWith('/courses') ? 'active' : '' %>" href="/courses">Courses</a>
+          </li>
         </ul>
         <div class="d-flex align-items-center gap-3">
           <span class="navbar-text small">
