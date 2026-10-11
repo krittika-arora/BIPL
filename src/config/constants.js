@@ -18,4 +18,9 @@ const COURSE_CATEGORIES = Object.freeze([
   'Communication',
 ]);
 
-module.exports = { ROLES, COURSE_STATUS, COURSE_CATEGORIES };
+const ACTIVITY_ACTIONS = Object.freeze({
+  CREATED: 'created',
+  UPDATED: 'updated',
+});
+
+module.exports = { ROLES, COURSE_STATUS, COURSE_CATEGORIES, ACTIVITY_ACTIONS };

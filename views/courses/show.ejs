@@ -25,4 +25,12 @@
   </div>
   <p class="text-pre-line mb-0"><%= course.description %></p>
 </div>
+
+<% if (isInstructor) { %>
+  <section class="bg-white border rounded-3 p-4">
+    <h2 class="h5 mb-1">Activity log</h2>
+    <p class="text-muted small mb-3">Every entry is permanent and cannot be edited or deleted.</p>
+    <%- include('_activity', { activity }) %>
+  </section>
+<% } %>
 <%- include('../partials/footer') %>

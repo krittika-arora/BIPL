@@ -1,6 +1,7 @@
 const Course = require('../models/Course');
+const activityService = require('./activityService');
 const HttpError = require('../utils/httpError');
-const { ROLES, COURSE_STATUS } = require('../config/constants');
+const { ROLES, COURSE_STATUS, ACTIVITY_ACTIONS } = require('../config/constants');
 
 const EDITABLE_FIELDS = ['title', 'description', 'category'];
 
@@ -30,16 +31,23 @@ async function getCourseForEdit(courseId) {
   return course;
 }
 
-function createCourse(actor, data) {
-  return Course.create({
+// All course writes go through this service so every change lands in the activity log.
+async function createCourse(actor, data) {
+  const course = await Course.create({
     title: data.title,
     description: data.description,
     category: data.category,
     instructor: actor._id,
   });
+  await activityService.record({
+    course: course._id,
+    actor: actor._id,
+    action: ACTIVITY_ACTIONS.CREATED,
+  });
+  return course;
 }
 
-// Applies only the fields that actually changed and returns them as { field, from, to }.
+// Applies only the fields that actually changed and logs them as { field, from, to }.
 async function updateCourse(actor, courseId, data) {
   const course = await getCourseForEdit(courseId);
 
@@ -51,7 +59,15 @@ async function updateCourse(actor, courseId, data) {
     }
   }
 
-  if (changes.length) await course.save();
+  if (changes.length) {
+    await course.save();
+    await activityService.record({
+      course: course._id,
+      actor: actor._id,
+      action: ACTIVITY_ACTIONS.UPDATED,
+      changes,
+    });
+  }
   return { course, changes };
 }
 

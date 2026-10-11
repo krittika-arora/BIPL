@@ -1,0 +1,30 @@
+<% const ACTION_LABELS = { created: 'Created the course', updated: 'Edited the course' }; %>
+<% if (!activity.length) { %>
+  <p class="text-muted mb-0">No activity recorded yet.</p>
+<% } else { %>
+  <ol class="list-group list-group-numbered">
+    <% activity.forEach((entry) => { %>
+      <li class="list-group-item d-flex justify-content-between align-items-start gap-3">
+        <div class="ms-2 me-auto">
+          <div>
+            <span class="fw-semibold"><%= entry.actor ? entry.actor.name : 'Unknown user' %></span>
+            <%= (ACTION_LABELS[entry.action] || entry.action).toLowerCase() %>
+          </div>
+          <% if (entry.changes && entry.changes.length) { %>
+            <ul class="small text-muted mb-0 ps-3">
+              <% entry.changes.forEach((change) => { %>
+                <li>
+                  <span class="text-capitalize"><%= change.field %></span>:
+                  <del><%= change.from %></del> &rarr; <%= change.to %>
+                </li>
+              <% }) %>
+            </ul>
+          <% } %>
+        </div>
+        <time class="small text-muted text-nowrap" datetime="<%= new Date(entry.createdAt).toISOString() %>">
+          <%= formatDateTime(entry.createdAt) %>
+        </time>
+      </li>
+    <% }) %>
+  </ol>
+<% } %>

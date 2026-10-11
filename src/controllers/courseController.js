@@ -1,5 +1,6 @@
 const courseService = require('../services/courseService');
-const { COURSE_CATEGORIES } = require('../config/constants');
+const activityService = require('../services/activityService');
+const { ROLES, COURSE_CATEGORIES } = require('../config/constants');
 const { collectErrors } = require('../utils/validation');
 
 function pickCourseFields(body) {
@@ -13,7 +14,9 @@ async function index(req, res) {
 
 async function show(req, res) {
   const course = await courseService.getVisibleCourse(req.user, req.params.id);
-  res.render('courses/show', { title: course.title, course });
+  const activity =
+    req.user.role === ROLES.INSTRUCTOR ? await activityService.listForCourse(course._id) : [];
+  res.render('courses/show', { title: course.title, course, activity });
 }
 
 function newForm(req, res) {
