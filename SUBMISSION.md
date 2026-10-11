@@ -1,7 +1,7 @@
 # Submission: CourseTrack
 
 **Assignment:** Internal training: courses, lessons and learner progress tracking
-**Repository:** _add GitHub URL_
+**Repository:** https://github.com/krittika-arora/BIPL
 **Live application:** not deployed yet (planned for session 4)
 
 ## Demo credentials
