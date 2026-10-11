@@ -20,4 +20,5 @@ module.exports = {
   isProduction: process.env.NODE_ENV === 'production',
   port: Number(process.env.PORT) || 3000,
   mongoUri: required('MONGODB_URI'),
+  sessionSecret: required('SESSION_SECRET'),
 };
