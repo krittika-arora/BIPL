@@ -2,7 +2,7 @@
 
 An internal training platform. Instructors build and publish courses made of ordered lessons; learners enrol and work through them at their own pace; progress is tracked automatically, so instructors can see who has finished, who is partway through and who has gone quiet.
 
-**Stack:** Node.js + Express 5, EJS server-rendered views, Bootstrap 5, MongoDB with Mongoose, sessions stored in MongoDB.
+**Stack:** Node.js + Express 5, EJS server-rendered views, Bootstrap 5, MongoDB with Mongoose, sessions stored in MongoDB. Chart.js (from a CDN) draws the dashboard chart; multer reads uploaded email lists.
 
 ## Running locally
 
@@ -46,7 +46,7 @@ src/
   utils/                 small helpers
 views/                   EJS templates (partials/ holds the shared layout)
 public/                  static CSS
-scripts/seed.js          demo data
+scripts/seed.js          demo data (scripts/seedHistory.js spreads it over past weeks)
 docs/                    plan, decisions, schema, AI usage
 ```
 

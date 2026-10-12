@@ -43,6 +43,13 @@ Built as planned, plus some rules that came up while building rather than from t
 - Dashboard: headline numbers, enrollments by course and by progress state, 8-week completions chart.
 - Comments on the course activity log.
 
+### Session 3 notes: what changed against the plan
+
+- Added one dependency, `multer`, for the file upload in bulk enrolment (memory storage, 100 KB cap, .csv/.txt only). Pasting addresses works without it.
+- Instructor enrolments (single and bulk) are now written to the activity log too, so the log answers "who enrolled whom".
+- The seed grew to 14 courses and 12 learners, so the catalogue has a second page and the dashboard has enough completions to chart. Its history is spread over the past weeks by a separate seed-only step (decision 22).
+- The chart could only be checked through its data and table fallback here, not by eye in a browser.
+
 ## Session 4: alerts, quality and delivery
 
 - Inactivity alerts (In Progress with no progress for more than 14 days), dismiss per learner and course, reappear after renewed activity followed by another quiet period; count badge in the navbar.

@@ -69,3 +69,45 @@ Positions are kept contiguous (1..n) by the service: new lessons go to the end, 
 ## 15. Lesson content is for enrolled learners only
 
 Learners can browse a published course's description and lesson titles, but opening a lesson requires enrolling first. That way every learner who reads course content is enrolled, so their progress is tracked, which is the point of the system.
+
+## 16. Search uses an escaped, case-insensitive regex rather than a text index
+
+Search must find "priv" inside "Privacy" and match partial words in descriptions. A MongoDB text index only matches whole (stemmed) words. The user's text is regex-escaped before use, so characters like `.*` are matched literally and cannot widen the query, and it is capped at 100 characters.
+**Cost:** the regex cannot use an index; see "What breaks first at 100x" in `schema.md`.
+
+## 17. The catalogue is one aggregation with `$facet`
+
+Filtering, sorting and pagination all run in MongoDB. `$facet` returns the page of 10 and the total count from one query, so the "N courses found" number always matches the filters. Only whitelisted keys can reach `$sort` (`created`, `title`, `enrollments`), and every sort includes `_id` as a tie-breaker so pages never overlap or skip a course (checked: 23 courses over 3 pages, each exactly once).
+
+Enrolment counts are looked up only for the courses on the current page, unless the user sorts by them, in which case they have to be computed before sorting. Unknown or malformed query values (including `q[$ne]=...` style operator injection) are dropped, never passed to the database. Learners are always limited to published courses, even if the URL asks for drafts. A page number past the end redirects to the last page.
+
+## 18. Bulk enrolment reports per address and never fails as a whole
+
+Each distinct address gets exactly one outcome: newly enrolled, already enrolled, unknown address, not a learner account, or invalid email. Duplicates in the input are collapsed and shown as "listed N times". One bad row never blocks the good ones. If two instructors enrol the same person at the same moment, the unique index catches it and that row is reported as "already enrolled".
+
+A CSV with an `email` header uses just that column (so a `name,email` export works, including quoted names with commas); otherwise every cell is treated as an address. Limits: 100 KB per file, 500 distinct addresses per submission. Uploads use `multer` with in-memory storage: files are parsed immediately and never written to disk.
+
+## 19. The CSV export defends against formula injection
+
+Learner names are user-supplied. A name like `=HYPERLINK(...)` would run as a formula when an instructor opens the export in Excel. Any text cell starting with `=`, `+`, `-`, `@`, tab or carriage return is prefixed with an apostrophe, and cells are quoted per RFC 4180. A UTF-8 BOM makes Excel show accented names correctly. Dates are ISO 8601 in UTC.
+
+## 20. Dashboard figures are computed on the server, in UTC
+
+Every figure is a MongoDB count or aggregation; no raw records are sent to the browser to be counted. "This month" and the chart's weeks (Monday-based, via `$dateTrunc`) are in UTC so they do not shift with the server's time zone. Weeks with no completions are filled in as zero, so the chart always shows eight bars.
+
+The chart data is embedded once as JSON in a `<script type="application/json">` block, with `<` and the Unicode line separators escaped so no value can close the tag, and read by `public/js/dashboard.js`. A table version of the same numbers sits under the chart for screen readers.
+**Cost:** a UTC week can differ by a few hours from a user's local week.
+
+## 21. Who can comment, and who sees what
+
+Instructors can comment on any course. Learners can comment only on a published course they are enrolled in. Learners see only the comments, not the edit, enrolment and transition history, which stays with instructors. Comments are ordinary activity-log entries, so they are just as permanent: there is no edit or delete, for anyone.
+
+## 22. Demo history: created by the services, then moved into the past by a seed-only step
+
+The dashboard needs weeks of history, but every service stamps "now". The seed therefore builds everything through the real services, so every rule check and log entry is genuine. Then `scripts/seedHistory.js` moves timestamps back:
+- courses from about 12 weeks ago onwards, with their setup log entries and lessons;
+- enrolments, completions and "instructor enrolled" entries after the course opened.
+
+Later edits and comments keep their real time. A fixed random seed means every run gives the same data.
+
+This is the one place outside the app that writes timestamps, and it has to use the raw driver: Mongoose treats `createdAt` as immutable, and the activity log's append-only guard (correctly) refuses the change. It runs only straight after the seed has dropped and rebuilt the database, before anyone uses the app. A check after seeding confirmed that no enrolment predates its course, no completion predates its enrolment or lies in the future, nobody in progress has been quiet for over 14 days, and every "instructor enrolled" entry matches its enrolment's time.
