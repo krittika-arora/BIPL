@@ -14,6 +14,10 @@ const STATUS_BADGES = {
   archived: 'text-bg-dark',
 };
 
+// "<" plus the two Unicode line separators (U+2028, U+2029), which JSON allows but
+// older JavaScript parsers treat as line breaks.
+const UNSAFE_IN_SCRIPT = new RegExp(`[<${String.fromCharCode(0x2028, 0x2029)}]`, 'g');
+
 const PROGRESS_LABELS = {
   not_started: { label: 'Not started', badge: 'text-bg-light border' },
   in_progress: { label: 'In progress', badge: 'text-bg-primary' },
@@ -39,6 +43,13 @@ module.exports = {
     if (merged.page && merged.page > 1) search.set('page', String(merged.page));
     return search.toString();
   },
+  // Serialises data for a <script type="application/json"> block. Escaping "<" stops a
+  // value containing "</script>" from closing the tag early.
+  jsonForScript: (data) =>
+    JSON.stringify(data).replace(
+      UNSAFE_IN_SCRIPT,
+      (char) => `\\u${char.charCodeAt(0).toString(16).padStart(4, '0')}`,
+    ),
   truncate: (value, max = 120) => {
     const text = value === null || value === undefined ? '' : String(value);
     return text.length > max ? `${text.slice(0, max - 1)}…` : text;

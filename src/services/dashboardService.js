@@ -8,13 +8,48 @@ function startOfMonthUtc(now) {
   return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
 }
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+const WEEKS_CHARTED = 8;
+const weekLabel = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+
+// Monday 00:00 UTC of the week containing `now`.
+function startOfWeekUtc(now) {
+  const day = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  const daysSinceMonday = (day.getUTCDay() + 6) % 7;
+  return new Date(day.getTime() - daysSinceMonday * DAY_MS);
+}
+
+// Completions per week for the last 8 weeks (this week included), zero-filled.
+async function weeklyCompletions(now = new Date(), weeks = WEEKS_CHARTED) {
+  const firstWeek = new Date(startOfWeekUtc(now).getTime() - (weeks - 1) * 7 * DAY_MS);
+  const counted = await Enrollment.aggregate([
+    { $match: { status: PROGRESS_STATUS.COMPLETED, completedAt: { $gte: firstWeek } } },
+    {
+      $group: {
+        _id: { $dateTrunc: { date: '$completedAt', unit: 'week', startOfWeek: 'monday', timezone: 'UTC' } },
+        count: { $sum: 1 },
+      },
+    },
+  ]);
+  const countByWeek = new Map(counted.map(({ _id, count }) => [_id.getTime(), count]));
+
+  return Array.from({ length: weeks }, (_, i) => {
+    const weekStart = new Date(firstWeek.getTime() + i * 7 * DAY_MS);
+    return {
+      weekStart: weekStart.toISOString().slice(0, 10),
+      label: weekLabel.format(weekStart),
+      count: countByWeek.get(weekStart.getTime()) || 0,
+    };
+  });
+}
+
 function countWhere(status) {
   return { $sum: { $cond: [{ $eq: ['$status', status] }, 1, 0] } };
 }
 
 // Every figure is computed by MongoDB; nothing is loaded into Node to be counted.
 async function getInstructorDashboard(now = new Date()) {
-  const [totalLearners, publishedCourses, completionsThisMonth, inProgress, byStatus, byCourse] =
+  const [totalLearners, publishedCourses, completionsThisMonth, inProgress, byStatus, byCourse, weekly] =
     await Promise.all([
       User.countDocuments({ role: ROLES.LEARNER }),
       Course.countDocuments({ status: COURSE_STATUS.PUBLISHED }),
@@ -52,6 +87,7 @@ async function getInstructorDashboard(now = new Date()) {
         { $match: { course: { $ne: null } } },
         { $sort: { total: -1, 'course.title': 1 } },
       ]),
+      weeklyCompletions(now),
     ]);
 
   const statusCounts = Object.fromEntries(Object.values(PROGRESS_STATUS).map((s) => [s, 0]));
@@ -67,7 +103,8 @@ async function getInstructorDashboard(now = new Date()) {
     statusCounts,
     totalEnrollments: Object.values(statusCounts).reduce((sum, n) => sum + n, 0),
     byCourse,
+    weekly,
   };
 }
 
-module.exports = { getInstructorDashboard, startOfMonthUtc };
+module.exports = { getInstructorDashboard, weeklyCompletions, startOfMonthUtc, startOfWeekUtc };
