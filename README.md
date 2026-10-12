@@ -15,7 +15,7 @@ npm run seed              # resets the database and loads demo data
 npm run dev               # http://localhost:3000, restarts on file changes
 ```
 
-`npm start` runs without file watching (used in production).
+`npm start` runs without file watching (used in production). `npm run mail:test -- you@example.com` checks your SMTP settings by sending one test email.
 
 ### Environment variables
 
@@ -24,7 +24,8 @@ npm run dev               # http://localhost:3000, restarts on file changes
 | `MONGODB_URI` | yes | MongoDB connection string |
 | `SESSION_SECRET` | yes | Signs the session cookie. Use a long random string |
 | `PORT` | no | Defaults to 3000 |
-| `NODE_ENV` | no | `production` enables secure cookies and proxy trust |
+| `NODE_ENV` | no | `production` enables secure cookies and proxy trust, and makes SMTP settings required |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM` | in production | Outgoing email for sign-up verification codes. In development, leave `SMTP_HOST` empty and the email is printed in the terminal instead. Step-by-step setup: [docs/email-setup.md](docs/email-setup.md) |
 
 The app refuses to start if a required variable is missing; there are no hardcoded fallbacks. `.env` is git-ignored.
 
@@ -55,4 +56,5 @@ docs/                    plan, decisions, schema, AI usage
 - [docs/plan.md](docs/plan.md): build plan by session
 - [docs/decisions.md](docs/decisions.md): design decisions and trade-offs
 - [docs/schema.md](docs/schema.md): data model
+- [docs/email-setup.md](docs/email-setup.md): configuring SMTP for sign-up verification emails
 - [docs/ai-prompts.md](docs/ai-prompts.md): how AI assistance was used and what was corrected

@@ -21,6 +21,21 @@ MongoDB via Mongoose. All collections have `createdAt`; mutable ones also have `
 | status | String | `draft`, `published`, `archived`; default `draft`; indexed |
 | instructor | ObjectId → User | required; the creator and **owner**: only this instructor can change the course or enrol learners (decision 5); indexed |
 
+## PendingSignup (`pendingsignups`)
+
+A sign-up waiting for its email to be confirmed. The `User` is only created once the code is correct.
+
+| Field | Type | Rules |
+| --- | --- | --- |
+| email | String | unique, lowercase |
+| name | String | max 80 |
+| passwordHash | String | bcrypt, as for users; the plain password is never stored |
+| codeHash | String | HMAC-SHA256 of the code, keyed with `SESSION_SECRET`; the code itself is never stored |
+| codeExpiresAt | Date | 10 minutes after the code was sent |
+| attempts | Number | wrong guesses on the current code; 5 cancels the sign-up |
+| sendCount, lastSentAt | Number, Date | rate limiting: 60 s between emails, at most 5 per pending sign-up |
+| expiresAt | Date | **TTL index**: MongoDB deletes the document 60 minutes after the last email |
+
 ## Lesson (`lessons`)
 
 | Field | Type | Rules |

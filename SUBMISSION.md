@@ -29,7 +29,7 @@ Created by `npm run seed`. These are demo-only accounts.
 | Learner | farah.learner@example.com | Learner@123 |
 | Learner | leela.learner@example.com | Learner@123 |
 
-New sign-ups through `/register` are always learners.
+New sign-ups through `/register` are always learners, and must confirm their email with a 6-digit code before the account is created. **When running locally without SMTP settings, the code is printed in the terminal running `npm run dev`**; to send real emails, see [docs/email-setup.md](docs/email-setup.md). The demo accounts above already exist and do not need verifying.
 
 The seed creates 14 courses (12 published, 1 draft, 1 archived with its enrolments kept), 46 lessons and 65 enrolments in every progress state, with completions spread over the last eight weeks and a few comments. `neha.learner@example.com` is a good learner account to start with; it has courses in every state.
 

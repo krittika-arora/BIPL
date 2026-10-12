@@ -147,3 +147,18 @@ The same server-side filter that limits learners to published courses now treats
 ## 24. "Return to where you were" after logging in, without an open redirect
 
 A visitor who clicks "Log in to enrol", or opens a link to a lesson, is sent to `/login?next=<that page>` and comes back to it after logging in or registering. The `next` value is carried in a hidden form field so it survives a wrong password. It is validated twice, when the form is shown and when it is submitted (`src/utils/safeRedirect.js`). Only a path inside this app is accepted: it must start with a single `/` and contain no backslashes or control characters. Anything else falls back to `/`, so a crafted link cannot send someone to another site after they sign in. Tested with `https://`, `//`, `/\\`, `javascript:`, a bare domain and a CR/LF header-injection attempt: all landed on `/`.
+
+## 25. Email verification at sign-up: no account until the code is confirmed
+
+Sign-up is two steps. The form creates a **pending sign-up**, not a user, and emails a 6-digit code. Only when the correct code is entered is the `User` created and the learner signed in. Unverified addresses therefore never appear as accounts. That keeps the rest of the system simple: bulk enrolment's "unknown address", the learner count on the dashboard and login all only ever see verified people. Pending sign-ups are deleted automatically by a TTL index.
+
+How the code is protected:
+- **Generation and storage.** Generated with `crypto.randomInt`. Stored only as an HMAC keyed with `SESSION_SECRET` and compared in constant time, so a leaked database does not reveal codes.
+- **Lifetime and guesses.** Valid for 10 minutes. Every attempt is counted atomically *before* comparing (`findOneAndUpdate` with `attempts < 5`), so parallel guesses cannot exceed 5; the fifth wrong code cancels the sign-up.
+- **Sending limits.** Emails to an address are limited to one per 60 seconds and 5 per pending sign-up. Restarting the form does not reset this, so the form cannot be used to flood someone's inbox.
+- **No identifiers in URLs.** The browser only holds the email in its server-side session; the verification URL contains no email or token to tamper with.
+- **Failed sends.** If the email cannot be sent, the visitor is told and may retry immediately (the cooldown is lifted).
+
+**SMTP configuration** comes only from environment variables (`docs/email-setup.md`). Development without `SMTP_HOST` prints emails to the terminal so the app works with no mail account. Production refuses to start without it, so sign-up cannot silently break. `npm run mail:test` checks the settings on their own. This added one dependency, `nodemailer`, the standard SMTP client for Node.
+
+**Accepted trade-off:** "An account with this email already exists" tells a visitor that an address is registered (account enumeration). It was already true before verification and is common practice for internal tools; a stricter version would always say "check your email" and send a "you already have an account" email instead.

@@ -65,3 +65,22 @@ I asked for a public side to the app: a landing page with the platform name, nav
 **What came back and was checked:** instead of a separate public code path, the existing visibility rule was extended so a visitor is treated like a learner (published only), and the course page renders a visitor version. Verified signed out: catalogue and course pages work, `?status=draft` is ignored, draft and archived course pages return 404, and the page source contains no emails, roster, progress, comments, lesson content or lesson links. Every protected page and every POST redirects to login and writes nothing. Signed-in instructors and learners see exactly what they did before.
 
 **Something added that I had not asked for:** returning visitors to the page they wanted after logging in. Because that takes a URL from the query string, it was checked against open-redirect tricks (decision 24).
+
+### Follow-up: email verification with OTP (my requirement, implemented with the assistant)
+
+I asked for sign-ups to be verified with a one-time code sent by email, configurable with my own SMTP details, plus instructions for setting them up.
+
+**What came back:** a two-step sign-up (pending sign-up, then account creation after the code), SMTP settings from environment variables with a console fallback in development only, an `npm run mail:test` command, and `docs/email-setup.md` with Gmail App Password steps and other providers.
+
+**What was checked and corrected:**
+
+- **Verified over real SMTP, not just the console.** A small local SMTP server, accepting one username/password, was used to check the whole path: login, delivery, the email's sender/recipient/subject, a rejected password, an unreachable port, and production refusing to start without `SMTP_HOST`.
+- **The first test run was invalid.** My own `npm run dev` server was still running on port 3000, so the test server could not bind and the requests went to my server, which had no SMTP configured. The odd results (no emails received, a "development mode" notice) gave it away. The assistant identified the processes, stopped only its own leftover test server, and reran everything on a separate port and a separate test database, so it no longer touched my running app or data.
+- **14 sign-up scenarios** passed after that:
+  - the code is never stored in plain text, and no user exists before verification;
+  - a wrong code shows the attempts left, and badly formatted input does not use up an attempt;
+  - resend is blocked inside 60 seconds and invalidates the old code;
+  - expired codes are refused, and a code typed with a space is accepted;
+  - the new account is a learner who can log in with their password;
+  - a duplicate email is refused, the fifth wrong code cancels the sign-up, the post-login return path is kept, and the send limit holds even when the form is restarted;
+  - an SMTP outage shows a clear message and allows an immediate retry.
