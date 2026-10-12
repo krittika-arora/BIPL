@@ -1,0 +1,43 @@
+<%- include('../partials/header') %>
+<div class="mb-4">
+  <h1 class="h3 mb-1">Welcome, <%= currentUser.name %></h1>
+  <p class="text-muted mb-0">Here is where you are with your courses.</p>
+</div>
+
+<div class="row g-3 mb-4">
+  <% [['in_progress', 'In progress'], ['not_started', 'Not started'], ['completed', 'Completed']].forEach(([key, label]) => { %>
+    <div class="col-4">
+      <div class="bg-white border rounded-3 p-3 text-center">
+        <div class="display-6 fw-semibold"><%= counts[key] %></div>
+        <div class="small text-muted"><%= label %></div>
+      </div>
+    </div>
+  <% }) %>
+</div>
+
+<section class="bg-white border rounded-3 p-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="h5 mb-0">Pick up where you left off</h2>
+    <a href="/my-learning" class="small">All my courses</a>
+  </div>
+  <% if (!continueRows.length) { %>
+    <p class="text-muted mb-0">Nothing in progress. <a href="/courses">Browse the catalogue</a> to find your next course.</p>
+  <% } else { %>
+    <ul class="list-group list-group-flush">
+      <% continueRows.forEach(({ enrollment, course, lessonIds }) => { %>
+        <% const percent = progressPercent(enrollment, lessonIds); %>
+        <li class="list-group-item px-0 d-flex flex-wrap justify-content-between align-items-center gap-2">
+          <div class="flex-grow-1">
+            <a href="/courses/<%= course._id %>" class="fw-semibold text-decoration-none"><%= course.title %></a>
+            <div class="progress mt-1" style="height: .5rem" role="progressbar" aria-label="Progress in <%= course.title %>"
+                 aria-valuenow="<%= percent %>" aria-valuemin="0" aria-valuemax="100">
+              <div class="progress-bar" style="width: <%= percent %>%"></div>
+            </div>
+          </div>
+          <span class="small text-muted"><%= percent %>%</span>
+        </li>
+      <% }) %>
+    </ul>
+  <% } %>
+</section>
+<%- include('../partials/footer') %>

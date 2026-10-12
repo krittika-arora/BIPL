@@ -1,0 +1,104 @@
+<%- include('../partials/header') %>
+<% const STATES = [
+     ['not_started', 'Not started', 'bg-secondary-subtle text-body'],
+     ['in_progress', 'In progress', 'bg-primary'],
+     ['completed', 'Completed', 'bg-success'],
+   ];
+   const pct = (part, whole) => (whole ? Math.round((part / whole) * 100) : 0); %>
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">Dashboard</h1>
+  <a href="/courses" class="btn btn-outline-primary btn-sm">All courses</a>
+</div>
+
+<div class="row g-3 mb-4">
+  <% [
+       ['Total learners', headline.totalLearners],
+       ['Published courses', headline.publishedCourses],
+       ['Completions this month', headline.completionsThisMonth],
+       ['Learners in progress', headline.learnersInProgress],
+     ].forEach(([label, value]) => { %>
+    <div class="col-6 col-lg-3">
+      <div class="bg-white border rounded-3 p-3 h-100">
+        <div class="small text-muted"><%= label %></div>
+        <div class="display-6 fw-semibold"><%= value %></div>
+      </div>
+    </div>
+  <% }) %>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-4">
+    <section class="bg-white border rounded-3 p-4 h-100">
+      <h2 class="h5 mb-1">Enrolments by progress</h2>
+      <p class="small text-muted mb-3"><%= totalEnrollments %> enrolments across all courses</p>
+      <% if (totalEnrollments) { %>
+        <div class="progress-stacked mb-3" style="height: 1.25rem" aria-hidden="true">
+          <% STATES.forEach(([key, , bar]) => { %>
+            <div class="progress" role="progressbar" style="width: <%= pct(statusCounts[key], totalEnrollments) %>%">
+              <div class="progress-bar <%= bar %>"></div>
+            </div>
+          <% }) %>
+        </div>
+      <% } %>
+      <table class="table table-sm mb-0">
+        <tbody>
+          <% STATES.forEach(([key, label, bar]) => { %>
+            <tr>
+              <td><span class="d-inline-block rounded-circle me-2 <%= bar %>" style="width:.7rem;height:.7rem"></span><%= label %></td>
+              <td class="text-end fw-semibold"><%= statusCounts[key] %></td>
+              <td class="text-end text-muted"><%= pct(statusCounts[key], totalEnrollments) %>%</td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </section>
+  </div>
+
+  <div class="col-lg-8">
+    <section class="bg-white border rounded-3 p-4 h-100">
+      <h2 class="h5 mb-3">Enrolments by course</h2>
+      <% if (!byCourse.length) { %>
+        <p class="text-muted mb-0">No enrolments yet.</p>
+      <% } else { %>
+        <div class="table-responsive">
+          <table class="table table-sm align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th scope="col">Course</th>
+                <th scope="col" class="text-end">Not started</th>
+                <th scope="col" class="text-end">In progress</th>
+                <th scope="col" class="text-end">Completed</th>
+                <th scope="col" class="text-end">Total</th>
+                <th scope="col" style="min-width: 8rem">Completion</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% byCourse.forEach((row) => { %>
+                <tr>
+                  <td>
+                    <a href="/courses/<%= row._id %>" class="text-decoration-none"><%= row.course.title %></a>
+                    <% if (row.course.status !== 'published') { %>
+                      <span class="badge text-capitalize <%= statusBadge(row.course.status) %> ms-1"><%= row.course.status %></span>
+                    <% } %>
+                  </td>
+                  <td class="text-end"><%= row.not_started %></td>
+                  <td class="text-end"><%= row.in_progress %></td>
+                  <td class="text-end"><%= row.completed %></td>
+                  <td class="text-end fw-semibold"><%= row.total %></td>
+                  <td>
+                    <div class="progress" role="progressbar" aria-label="Completion for <%= row.course.title %>"
+                         aria-valuenow="<%= pct(row.completed, row.total) %>" aria-valuemin="0" aria-valuemax="100">
+                      <div class="progress-bar bg-success" style="width: <%= pct(row.completed, row.total) %>%"></div>
+                    </div>
+                    <div class="small text-muted"><%= pct(row.completed, row.total) %>%</div>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </section>
+  </div>
+</div>
+<%- include('../partials/footer') %>
