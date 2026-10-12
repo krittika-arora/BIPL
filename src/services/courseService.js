@@ -1,9 +1,10 @@
 const Course = require('../models/Course');
 const Lesson = require('../models/Lesson');
 const User = require('../models/User');
+const Enrollment = require('../models/Enrollment');
 const activityService = require('./activityService');
 const HttpError = require('../utils/httpError');
-const { buildCatalogueFilter } = require('../utils/catalogueQuery');
+const { PAGE_SIZE, SORT_FIELDS, buildCatalogueFilter } = require('../utils/catalogueQuery');
 const {
   ROLES,
   COURSE_STATUS,
@@ -25,12 +26,64 @@ function visibilityFilter(user) {
   return user.role === ROLES.INSTRUCTOR ? {} : { status: COURSE_STATUS.PUBLISHED };
 }
 
-// Search and filtering happen in the database; the browser only receives matching courses.
-function listCourses(user, params) {
-  return Course.find(buildCatalogueFilter(params, user))
-    .populate('instructor', 'name')
-    .sort({ createdAt: -1 })
-    .lean();
+const enrollmentCountStages = [
+  {
+    $lookup: {
+      from: Enrollment.collection.name,
+      localField: '_id',
+      foreignField: 'course',
+      pipeline: [{ $count: 'n' }],
+      as: 'enrollmentStats',
+    },
+  },
+  { $set: { enrollmentCount: { $ifNull: [{ $first: '$enrollmentStats.n' }, 0] } } },
+  { $unset: 'enrollmentStats' },
+];
+
+const instructorNameStages = [
+  {
+    $lookup: {
+      from: User.collection.name,
+      localField: 'instructor',
+      foreignField: '_id',
+      pipeline: [{ $project: { name: 1 } }],
+      as: 'instructor',
+    },
+  },
+  { $set: { instructor: { $first: '$instructor' } } },
+];
+
+// Search, filtering, sorting and pagination all run in one aggregation in the database.
+// $facet returns the requested page and the total match count from the same query.
+async function listCourses(user, params) {
+  const direction = params.dir === 'asc' ? 1 : -1;
+  const sortByEnrollments = params.sort === 'enrollments';
+  const skip = (params.page - 1) * PAGE_SIZE;
+
+  const pageStages = [
+    // _id breaks ties so pages never overlap or skip a course.
+    { $sort: { [SORT_FIELDS[params.sort]]: direction, _id: direction } },
+    { $skip: skip },
+    { $limit: PAGE_SIZE },
+    // When not sorting by it, count enrolments only for the 10 courses on this page.
+    ...(sortByEnrollments ? [] : enrollmentCountStages),
+    ...instructorNameStages,
+  ];
+
+  const [result] = await Course.aggregate([
+    { $match: buildCatalogueFilter(params, user) },
+    ...(sortByEnrollments ? enrollmentCountStages : []),
+    { $facet: { courses: pageStages, total: [{ $count: 'n' }] } },
+  ]).collation({ locale: 'en', strength: 2 }); // case-insensitive title order
+
+  const total = result.total.length ? result.total[0].n : 0;
+  return {
+    courses: result.courses,
+    total,
+    page: params.page,
+    pageSize: PAGE_SIZE,
+    pages: Math.max(1, Math.ceil(total / PAGE_SIZE)),
+  };
 }
 
 function listInstructors() {

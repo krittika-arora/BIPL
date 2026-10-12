@@ -5,6 +5,7 @@ const enrollmentService = require('../services/enrollmentService');
 const { ROLES, COURSE_STATUS, COURSE_CATEGORIES } = require('../config/constants');
 const HttpError = require('../utils/httpError');
 const { parseCatalogueQuery } = require('../utils/catalogueQuery');
+const { catalogueQueryString } = require('../utils/viewHelpers');
 const { collectErrors } = require('../utils/validation');
 
 function pickCourseFields(body) {
@@ -13,14 +14,20 @@ function pickCourseFields(body) {
 
 async function index(req, res) {
   const params = parseCatalogueQuery(req.query, req.user);
-  const [courses, instructors] = await Promise.all([
+  const [result, instructors] = await Promise.all([
     courseService.listCourses(req.user, params),
     courseService.listInstructors(),
   ]);
+
+  // A page past the end (e.g. after filters narrowed the results) goes to the last real page.
+  if (result.total > 0 && params.page > result.pages) {
+    return res.redirect(`/courses?${catalogueQueryString(params, { page: result.pages })}`);
+  }
+
   const filtered = Boolean(params.q || params.category || params.status || params.instructor);
   res.render('courses/index', {
     title: 'Courses',
-    courses,
+    ...result,
     params,
     filtered,
     instructors,

@@ -2,6 +2,15 @@ const mongoose = require('mongoose');
 const { ROLES, COURSE_STATUS, COURSE_CATEGORIES } = require('../config/constants');
 
 const MAX_SEARCH_LENGTH = 100;
+const PAGE_SIZE = 10;
+
+// Allowed sort keys mapped to the field they sort on. Nothing else reaches $sort.
+const SORT_FIELDS = Object.freeze({
+  created: 'createdAt',
+  title: 'title',
+  enrollments: 'enrollmentCount',
+});
+const DEFAULT_SORT = { sort: 'created', dir: 'desc' };
 
 function escapeRegex(text) {
   return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -23,7 +32,12 @@ function parseCatalogueQuery(query, user) {
     isInstructor && Object.values(COURSE_STATUS).includes(single(query.status)) ? single(query.status) : '';
   const instructor = mongoose.isValidObjectId(single(query.instructor)) ? single(query.instructor) : '';
 
-  return { q, category, status, instructor };
+  const sort = Object.hasOwn(SORT_FIELDS, single(query.sort)) ? single(query.sort) : DEFAULT_SORT.sort;
+  const dir = ['asc', 'desc'].includes(single(query.dir)) ? single(query.dir) : DEFAULT_SORT.dir;
+  const requestedPage = Number.parseInt(single(query.page), 10);
+  const page = Number.isInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1;
+
+  return { q, category, status, instructor, sort, dir, page };
 }
 
 // Builds the MongoDB filter for the catalogue. Learners only ever get published courses.
@@ -41,4 +55,11 @@ function buildCatalogueFilter(params, user) {
   return filter;
 }
 
-module.exports = { parseCatalogueQuery, buildCatalogueFilter, escapeRegex };
+module.exports = {
+  PAGE_SIZE,
+  SORT_FIELDS,
+  DEFAULT_SORT,
+  parseCatalogueQuery,
+  buildCatalogueFilter,
+  escapeRegex,
+};
