@@ -11,6 +11,8 @@ const courseService = require('../src/services/courseService');
 const lessonService = require('../src/services/lessonService');
 const enrollmentService = require('../src/services/enrollmentService');
 const progressService = require('../src/services/progressService');
+const activityService = require('../src/services/activityService');
+const { spreadHistory, createRandom } = require('./seedHistory');
 const { ROLES, COURSE_STATUS } = require('../src/config/constants');
 
 // Demo-only credentials, documented in SUBMISSION.md.
@@ -29,6 +31,12 @@ const LEARNERS = [
   { name: 'Vikram Singh', email: 'vikram.learner@example.com' },
   { name: 'Meera Pillai', email: 'meera.learner@example.com' },
   { name: 'Kabir Das', email: 'kabir.learner@example.com' },
+  { name: 'Priya Raman', email: 'priya.learner@example.com' },
+  { name: 'Rohan Gupta', email: 'rohan.learner@example.com' },
+  { name: 'Isha Malhotra', email: 'isha.learner@example.com' },
+  { name: 'Dev Patel', email: 'dev.learner@example.com' },
+  { name: 'Farah Khan', email: 'farah.learner@example.com' },
+  { name: 'Leela Menon', email: 'leela.learner@example.com' },
 ];
 
 // finalStatus: what the course ends up as. enrolments: [learnerIndex, lessonsCompleted, how].
@@ -124,6 +132,57 @@ const COURSES = [
   },
 ];
 
+// Smaller published courses whose enrolments are generated, so the catalogue has
+// more than one page and the dashboard has enough completions to chart.
+const EXTRA_COURSES = [
+  ['Inclusive Meetings', 'Communication', 0, 'Run meetings where everyone can contribute: agendas, turn-taking and follow-ups.',
+    ['Send the agenda early', 'Make room for quieter voices', 'Close with owners and dates']],
+  ['Anti-Bribery and Gifts Policy', 'Compliance', 0, 'What you may accept, what you must declare, and how to report a concern.',
+    ['What counts as a bribe', 'Gifts and hospitality limits', 'How to declare and report']],
+  ['Git Fundamentals', 'Technical Skills', 1, 'Branches, commits and pull requests for people new to version control.',
+    ['Commits and history', 'Branching and merging', 'Opening a pull request']],
+  ['Running Effective One-to-Ones', 'Leadership', 0, 'A simple weekly structure that keeps one-to-ones useful for both sides.',
+    ['Whose meeting is it?', 'A reusable agenda', 'Following up']],
+  ['Expense Claims and Travel', 'Onboarding', 1, 'How to book travel, what you can claim and how to submit receipts.',
+    ['Booking travel', 'What you can claim', 'Submitting a claim']],
+  ['Writing Good Bug Reports', 'Technical Skills', 1, 'Reports that get fixed: steps to reproduce, expected versus actual, and evidence.',
+    ['Steps to reproduce', 'Expected and actual', 'Screenshots and logs']],
+  ['Presenting with Confidence', 'Communication', 1, 'Structure a short talk, handle questions and manage nerves.',
+    ['One message per talk', 'Handling questions', 'Managing nerves']],
+  ['Delegation for New Managers', 'Leadership', 0, 'Decide what to hand over, brief it clearly and check in without micromanaging.',
+    ['What to delegate', 'Briefing the task', 'Checking in']],
+].map(([title, category, owner, description, lessonTitles]) => ({
+  owner,
+  title,
+  category,
+  description,
+  lessons: lessonTitles.map((lessonTitle) => [
+    lessonTitle,
+    `${lessonTitle}: key points, a short example from our own teams, and one thing to try this week.`,
+  ]),
+  finalStatus: COURSE_STATUS.PUBLISHED,
+  enrolments: null, // generated
+}));
+
+// Picks 4-8 learners for a course with a deterministic mix of progress.
+function generateEnrolments(random, learnerCount, lessonCount) {
+  const picked = new Set();
+  const target = 4 + Math.floor(random() * 5);
+  while (picked.size < Math.min(target, learnerCount)) picked.add(Math.floor(random() * learnerCount));
+  return [...picked].map((learnerIndex) => {
+    const roll = random();
+    const completed = roll < 0.45 ? 'all' : roll < 0.8 ? 1 + Math.floor(random() * (lessonCount - 1)) : 0;
+    return [learnerIndex, completed, random() < 0.5 ? 'self' : 'instructor'];
+  });
+}
+
+const COMMENTS = [
+  ['Workplace Safety Essentials', 'learner', 0, 'Is the assembly point still the car park now the new wing is open?'],
+  ['Workplace Safety Essentials', 'instructor', 0, 'Yes. The updated map in lesson 2 shows the route from the new wing.'],
+  ['Data Privacy and Information Security', 'learner', 1, 'The phishing examples were really useful. Could we get a printable checklist?'],
+  ['New Joiner Onboarding', 'instructor', 1, 'Moved "Who to ask for what" earlier after feedback from the last intake.'],
+];
+
 async function createUsers(people, role, password) {
   const passwordHash = await User.hashPassword(password);
   return User.insertMany(people.map((person) => ({ ...person, role, passwordHash })));
@@ -158,7 +217,9 @@ async function seed() {
   const learners = await createUsers(LEARNERS, ROLES.LEARNER, LEARNER_PASSWORD);
 
   // Everything below goes through the services, so the activity log and progress rules apply.
-  for (const { owner, lessons, finalStatus, enrolments, ...data } of COURSES) {
+  const random = createRandom(42);
+  for (const { owner, lessons, finalStatus, enrolments: listed, ...data } of [...COURSES, ...EXTRA_COURSES]) {
+    const enrolments = listed || generateEnrolments(random, learners.length, lessons.length);
     const instructor = instructors[owner];
     const course = await courseService.createCourse(instructor, data);
 
@@ -186,6 +247,14 @@ async function seed() {
   const onboarding = await Course.findOne({ title: 'New Joiner Onboarding' });
   const whoToAsk = await Lesson.findOne({ course: onboarding._id, title: 'Who to ask for what' });
   await lessonService.moveLesson(instructors[1], onboarding._id, whoToAsk._id, 'up');
+
+  for (const [courseTitle, role, index, message] of COMMENTS) {
+    const course = await Course.findOne({ title: courseTitle });
+    const author = role === 'instructor' ? instructors[index] : learners[index];
+    await activityService.addComment(author, course._id, message);
+  }
+
+  await spreadHistory();
 
   const [courseCount, lessonCount, enrollmentCount, byStatus] = await Promise.all([
     Course.countDocuments(),
