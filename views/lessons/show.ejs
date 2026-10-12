@@ -1,5 +1,6 @@
 <%- include('../partials/header') %>
 <% const isInstructor = currentUser.role === 'instructor'; %>
+<% const lessonDone = isLessonCompleted(enrollment, lesson._id); %>
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="/courses">Courses</a></li>
@@ -8,7 +9,7 @@
   </ol>
 </nav>
 
-<article class="bg-white border rounded-3 p-4">
+<article class="bg-white border rounded-3 p-4 mb-3">
   <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
     <div>
       <p class="text-muted small mb-1">Lesson <%= lesson.position %></p>
@@ -19,5 +20,26 @@
     <% } %>
   </div>
   <div class="text-pre-line"><%= lesson.content %></div>
+
+  <% if (enrollment) { %>
+    <div class="border-top mt-4 pt-3">
+      <% if (lessonDone) { %>
+        <span class="badge text-bg-success">&check; Completed</span>
+      <% } else if (enrollment.status !== 'completed') { %>
+        <form action="/courses/<%= course._id %>/lessons/<%= lesson._id %>/complete" method="post">
+          <button type="submit" class="btn btn-success">Mark as complete</button>
+        </form>
+      <% } %>
+    </div>
+  <% } %>
 </article>
+
+<nav class="d-flex justify-content-between" aria-label="Lesson navigation">
+  <% if (previous) { %>
+    <a class="btn btn-outline-secondary btn-sm" href="/courses/<%= course._id %>/lessons/<%= previous._id %>">&larr; <%= previous.title %></a>
+  <% } else { %><span></span><% } %>
+  <% if (next) { %>
+    <a class="btn btn-outline-secondary btn-sm" href="/courses/<%= course._id %>/lessons/<%= next._id %>"><%= next.title %> &rarr;</a>
+  <% } %>
+</nav>
 <%- include('../partials/footer') %>

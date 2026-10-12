@@ -1,8 +1,9 @@
 const courseService = require('../services/courseService');
 const lessonService = require('../services/lessonService');
 const enrollmentService = require('../services/enrollmentService');
+const progressService = require('../services/progressService');
 const HttpError = require('../utils/httpError');
-const { ROLES } = require('../config/constants');
+const { ROLES, PROGRESS_STATUS } = require('../config/constants');
 const { collectErrors } = require('../utils/validation');
 
 function pickLessonFields(body) {
@@ -25,7 +26,27 @@ async function show(req, res) {
     }
   }
   const lesson = await lessonService.getLesson(course._id, req.params.lessonId);
-  res.render('lessons/show', { title: lesson.title, course, lesson, enrollment });
+  const { previous, next } = await lessonService.getNeighbours(course._id, lesson.position);
+  res.render('lessons/show', { title: lesson.title, course, lesson, enrollment, previous, next });
+}
+
+// Marks the lesson complete for the signed-in learner, then moves them on to the next lesson.
+async function complete(req, res) {
+  const { courseId, lessonId } = req.params;
+  try {
+    const { lesson, enrollment } = await progressService.completeLesson(req.user, courseId, lessonId);
+    if (enrollment.status === PROGRESS_STATUS.COMPLETED) {
+      req.flash('success', 'Course completed. Well done!');
+      return res.redirect(coursePath(courseId));
+    }
+    const { next } = await lessonService.getNeighbours(courseId, lesson.position);
+    req.flash('success', 'Lesson marked as complete.');
+    return res.redirect(next ? `${coursePath(courseId)}/lessons/${next._id}` : coursePath(courseId));
+  } catch (err) {
+    if (!HttpError.isRuleViolation(err)) throw err;
+    req.flash('warning', err.message);
+    return res.redirect(coursePath(courseId));
+  }
 }
 
 async function newForm(req, res) {
@@ -104,4 +125,4 @@ async function move(req, res) {
   res.redirect(coursePath(req.params.courseId));
 }
 
-module.exports = { show, newForm, create, editForm, update, remove, move };
+module.exports = { show, complete, newForm, create, editForm, update, remove, move };

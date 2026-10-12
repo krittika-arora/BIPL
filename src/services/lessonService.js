@@ -1,5 +1,6 @@
 const Course = require('../models/Course');
 const Lesson = require('../models/Lesson');
+const progressService = require('./progressService');
 const HttpError = require('../utils/httpError');
 const { COURSE_STATUS } = require('../config/constants');
 
@@ -13,6 +14,14 @@ async function getLesson(courseId, lessonId) {
   const lesson = await Lesson.findOne({ _id: lessonId, course: courseId });
   if (!lesson) throw new HttpError(404, 'Lesson not found.');
   return lesson;
+}
+
+async function getNeighbours(courseId, position) {
+  const [previous, next] = await Promise.all([
+    Lesson.findOne({ course: courseId, position: position - 1 }).select('title').lean(),
+    Lesson.findOne({ course: courseId, position: position + 1 }).select('title').lean(),
+  ]);
+  return { previous, next };
 }
 
 // Lessons of an archived course are frozen until it is restored.
@@ -73,6 +82,7 @@ async function removeLesson(actor, courseId, lessonId) {
     { course: course._id, position: { $gt: lesson.position } },
     { $inc: { position: -1 } },
   );
+  await progressService.reconcileCourse(course._id);
   return { course, lesson };
 }
 
@@ -104,6 +114,7 @@ async function moveLesson(actor, courseId, lessonId, direction) {
 module.exports = {
   listLessons,
   getLesson,
+  getNeighbours,
   getEditableCourse,
   addLesson,
   updateLesson,

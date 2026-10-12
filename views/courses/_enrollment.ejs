@@ -10,12 +10,30 @@
       </form>
     </div>
   <% } else { %>
-    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+    <% const lessonIds = lessons.map((lesson) => lesson._id); %>
+    <% const percent = progressPercent(enrollment, lessonIds); %>
+    <% const firstOpen = lessons.find((lesson) => !isLessonCompleted(enrollment, lesson._id)); %>
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
       <div>
         <h2 class="h5 mb-1">Your progress</h2>
-        <p class="text-muted small mb-0">Enrolled <%= formatDate(enrollment.createdAt) %></p>
+        <p class="text-muted small mb-0">
+          <%= countCompleted(enrollment, lessonIds) %> of <%= lessons.length %> lessons completed
+          &middot; enrolled <%= formatDate(enrollment.createdAt) %>
+          <% if (enrollment.completedAt) { %>&middot; completed <%= formatDate(enrollment.completedAt) %><% } %>
+        </p>
       </div>
-      <span class="badge <%= progressBadge(enrollment.status) %>"><%= progressLabel(enrollment.status) %></span>
+      <div class="d-flex align-items-center gap-2">
+        <span class="badge <%= progressBadge(enrollment.status) %>"><%= progressLabel(enrollment.status) %></span>
+        <% if (firstOpen && enrollment.status !== 'completed') { %>
+          <a href="/courses/<%= course._id %>/lessons/<%= firstOpen._id %>" class="btn btn-primary btn-sm">
+            <%= enrollment.status === 'not_started' ? 'Start course' : 'Continue' %>
+          </a>
+        <% } %>
+      </div>
+    </div>
+    <div class="progress" role="progressbar" aria-label="Course progress"
+         aria-valuenow="<%= percent %>" aria-valuemin="0" aria-valuemax="100">
+      <div class="progress-bar <%= percent === 100 ? 'bg-success' : '' %>" style="width: <%= percent %>%"><%= percent %>%</div>
     </div>
   <% } %>
 </section>

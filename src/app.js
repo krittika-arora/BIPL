@@ -9,6 +9,7 @@ const { loadCurrentUser } = require('./middleware/auth');
 const routes = require('./routes');
 const { notFound, errorHandler } = require('./middleware/errors');
 const viewHelpers = require('./utils/viewHelpers');
+const progressHelpers = require('./utils/progress');
 
 const SESSION_TTL_SECONDS = 60 * 60 * 8;
 
@@ -19,7 +20,7 @@ function createApp() {
   app.set('view engine', 'ejs');
   app.set('views', path.join(__dirname, '..', 'views'));
   app.disable('x-powered-by');
-  Object.assign(app.locals, viewHelpers);
+  Object.assign(app.locals, viewHelpers, progressHelpers);
   if (env.isProduction) app.set('trust proxy', 1);
 
   app.use(express.static(path.join(__dirname, '..', 'public')));

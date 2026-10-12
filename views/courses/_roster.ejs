@@ -1,3 +1,4 @@
+<% const lessonIds = lessons.map((lesson) => lesson._id); %>
 <section class="bg-white border rounded-3 p-4 mb-4">
   <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
     <h2 class="h5 mb-0">Learners <span class="text-muted fw-normal">(<%= roster.length %>)</span></h2>
@@ -22,6 +23,8 @@
           <tr>
             <th scope="col">Learner</th>
             <th scope="col">Status</th>
+            <th scope="col">Progress</th>
+            <th scope="col">Last activity</th>
             <th scope="col">Enrolled</th>
           </tr>
         </thead>
@@ -33,6 +36,8 @@
                 <div class="small text-muted"><%= row.learner ? row.learner.email : '' %></div>
               </td>
               <td><span class="badge <%= progressBadge(row.status) %>"><%= progressLabel(row.status) %></span></td>
+              <td><%= progressPercent(row, lessonIds) %>%</td>
+              <td class="text-nowrap"><%= row.lastActivityAt ? formatDate(row.lastActivityAt) : '—' %></td>
               <td class="text-nowrap"><%= formatDate(row.createdAt) %></td>
             </tr>
           <% }) %>

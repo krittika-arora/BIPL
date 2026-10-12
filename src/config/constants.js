@@ -24,6 +24,13 @@ const PROGRESS_STATUS = Object.freeze({
   COMPLETED: 'completed',
 });
 
+// The only legal progress moves, applied one step at a time by progressService.
+const PROGRESS_TRANSITIONS = Object.freeze({
+  not_started: Object.freeze(['in_progress']),
+  in_progress: Object.freeze(['completed']),
+  completed: Object.freeze([]),
+});
+
 // A fixed list keeps filtering and reporting consistent; see docs/decisions.md.
 const COURSE_CATEGORIES = Object.freeze([
   'Onboarding',
@@ -43,6 +50,7 @@ module.exports = {
   COURSE_STATUS,
   COURSE_TRANSITIONS,
   PROGRESS_STATUS,
+  PROGRESS_TRANSITIONS,
   COURSE_CATEGORIES,
   ACTIVITY_ACTIONS,
 };

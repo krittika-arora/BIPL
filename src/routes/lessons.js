@@ -7,10 +7,12 @@ const { ROLES } = require('../config/constants');
 // Mounted under /courses/:courseId/lessons; authentication is applied by the parent router.
 const router = express.Router({ mergeParams: true });
 const instructorOnly = requireRole(ROLES.INSTRUCTOR);
+const learnerOnly = requireRole(ROLES.LEARNER);
 
 router.get('/new', instructorOnly, lessonController.newForm);
 router.post('/', instructorOnly, lessonRules, lessonController.create);
 router.get('/:lessonId', lessonController.show);
+router.post('/:lessonId/complete', learnerOnly, lessonController.complete);
 router.get('/:lessonId/edit', instructorOnly, lessonController.editForm);
 router.post('/:lessonId/edit', instructorOnly, lessonRules, lessonController.update);
 router.post('/:lessonId/delete', instructorOnly, lessonController.remove);
