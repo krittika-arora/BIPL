@@ -1,8 +1,9 @@
 const Course = require('../models/Course');
 const Lesson = require('../models/Lesson');
 const progressService = require('./progressService');
+const activityService = require('./activityService');
 const HttpError = require('../utils/httpError');
-const { COURSE_STATUS } = require('../config/constants');
+const { COURSE_STATUS, ACTIVITY_ACTIONS } = require('../config/constants');
 
 const EDITABLE_FIELDS = ['title', 'content'];
 
@@ -22,6 +23,16 @@ async function getNeighbours(courseId, position) {
     Lesson.findOne({ course: courseId, position: position + 1 }).select('title').lean(),
   ]);
   return { previous, next };
+}
+
+function logLessonActivity(actor, course, action, lessonTitle, changes = []) {
+  return activityService.record({
+    course: course._id,
+    actor: actor._id,
+    action,
+    subject: lessonTitle,
+    changes,
+  });
 }
 
 // Lessons of an archived course are frozen until it is restored.
@@ -44,6 +55,7 @@ async function addLesson(actor, courseId, data) {
     content: data.content,
     position: last ? last.position + 1 : 1,
   });
+  await logLessonActivity(actor, course, ACTIVITY_ACTIONS.LESSON_ADDED, lesson.title);
   return { course, lesson };
 }
 
@@ -59,7 +71,10 @@ async function updateLesson(actor, courseId, lessonId, data) {
     }
   }
 
-  if (changes.length) await lesson.save();
+  if (changes.length) {
+    await lesson.save();
+    await logLessonActivity(actor, course, ACTIVITY_ACTIONS.LESSON_UPDATED, lesson.title, changes);
+  }
   return { course, lesson, changes };
 }
 
@@ -83,6 +98,7 @@ async function removeLesson(actor, courseId, lessonId) {
     { $inc: { position: -1 } },
   );
   await progressService.reconcileCourse(course._id);
+  await logLessonActivity(actor, course, ACTIVITY_ACTIONS.LESSON_REMOVED, lesson.title);
   return { course, lesson };
 }
 
@@ -108,6 +124,9 @@ async function moveLesson(actor, courseId, lessonId, direction) {
     { updateOne: { filter: { _id: neighbour._id }, update: { $set: { position: from } } } },
   ]);
   lesson.position = neighbourPosition;
+  await logLessonActivity(actor, course, ACTIVITY_ACTIONS.LESSON_MOVED, lesson.title, [
+    { field: 'position', from, to: neighbourPosition },
+  ]);
   return { course, lesson, from, to: neighbourPosition };
 }
 

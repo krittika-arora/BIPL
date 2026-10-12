@@ -43,6 +43,13 @@ const COURSE_CATEGORIES = Object.freeze([
 const ACTIVITY_ACTIONS = Object.freeze({
   CREATED: 'created',
   UPDATED: 'updated',
+  PUBLISHED: 'published',
+  ARCHIVED: 'archived',
+  RESTORED: 'restored',
+  LESSON_ADDED: 'lesson_added',
+  LESSON_UPDATED: 'lesson_updated',
+  LESSON_REMOVED: 'lesson_removed',
+  LESSON_MOVED: 'lesson_moved',
 });
 
 module.exports = {

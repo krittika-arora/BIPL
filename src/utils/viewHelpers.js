@@ -26,4 +26,8 @@ module.exports = {
   statusBadge: (status) => STATUS_BADGES[status] || 'text-bg-light',
   progressLabel: (status) => (PROGRESS_LABELS[status] || { label: status }).label,
   progressBadge: (status) => (PROGRESS_LABELS[status] || {}).badge || 'text-bg-light',
+  truncate: (value, max = 120) => {
+    const text = value === null || value === undefined ? '' : String(value);
+    return text.length > max ? `${text.slice(0, max - 1)}…` : text;
+  },
 };

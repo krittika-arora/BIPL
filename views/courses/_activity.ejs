@@ -1,4 +1,14 @@
-<% const ACTION_LABELS = { created: 'Created the course', updated: 'Edited the course' }; %>
+<% const ACTION_LABELS = {
+     created: 'created the course',
+     updated: 'edited the course',
+     published: 'published the course',
+     archived: 'archived the course',
+     restored: 'restored the course',
+     lesson_added: 'added lesson',
+     lesson_updated: 'edited lesson',
+     lesson_removed: 'removed lesson',
+     lesson_moved: 'moved lesson',
+   }; %>
 <% if (!activity.length) { %>
   <p class="text-muted mb-0">No activity recorded yet.</p>
 <% } else { %>
@@ -8,14 +18,15 @@
         <div class="ms-2 me-auto">
           <div>
             <span class="fw-semibold"><%= entry.actor ? entry.actor.name : 'Unknown user' %></span>
-            <%= (ACTION_LABELS[entry.action] || entry.action).toLowerCase() %>
+            <%= ACTION_LABELS[entry.action] || entry.action %>
+            <% if (entry.subject) { %>&ldquo;<%= entry.subject %>&rdquo;<% } %>
           </div>
           <% if (entry.changes && entry.changes.length) { %>
             <ul class="small text-muted mb-0 ps-3">
               <% entry.changes.forEach((change) => { %>
                 <li>
                   <span class="text-capitalize"><%= change.field %></span>:
-                  <del><%= change.from %></del> &rarr; <%= change.to %>
+                  <del><%= truncate(change.from) %></del> &rarr; <%= truncate(change.to) %>
                 </li>
               <% }) %>
             </ul>

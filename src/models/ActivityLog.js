@@ -8,6 +8,9 @@ const activityLogSchema = new mongoose.Schema(
     course: { type: mongoose.Schema.Types.ObjectId, ref: 'Course', required: true },
     actor: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     action: { type: String, required: true, enum: Object.values(ACTIVITY_ACTIONS) },
+    // What inside the course the action was about, e.g. a lesson title. Copied, so it
+    // still reads correctly after the lesson is renamed or removed.
+    subject: { type: String, trim: true, maxlength: 200 },
     // For edits: which fields changed, from what, to what.
     changes: [
       {

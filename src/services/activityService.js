@@ -1,7 +1,7 @@
 const ActivityLog = require('../models/ActivityLog');
 
-function record({ course, actor, action, changes = [] }) {
-  return ActivityLog.create({ course, actor, action, changes });
+function record({ course, actor, action, subject, changes = [] }) {
+  return ActivityLog.create({ course, actor, action, subject, changes });
 }
 
 // Oldest first, so the log reads as a timeline.

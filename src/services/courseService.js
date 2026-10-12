@@ -11,6 +11,13 @@ const {
 
 const EDITABLE_FIELDS = ['title', 'description', 'category'];
 
+// How each legal transition is named in the activity log.
+const TRANSITION_ACTIONS = {
+  draft: { published: ACTIVITY_ACTIONS.PUBLISHED },
+  published: { archived: ACTIVITY_ACTIONS.ARCHIVED },
+  archived: { published: ACTIVITY_ACTIONS.RESTORED },
+};
+
 // Learners only ever see published courses; instructors see everything.
 function visibilityFilter(user) {
   return user.role === ROLES.INSTRUCTOR ? {} : { status: COURSE_STATUS.PUBLISHED };
@@ -105,6 +112,12 @@ async function transitionCourse(actor, courseId, toStatus) {
   }
 
   course.status = toStatus;
+  await activityService.record({
+    course: course._id,
+    actor: actor._id,
+    action: TRANSITION_ACTIONS[from][toStatus],
+    changes: [{ field: 'status', from, to: toStatus }],
+  });
   return { course, from, to: toStatus };
 }
 
