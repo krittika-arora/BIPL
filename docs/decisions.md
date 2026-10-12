@@ -177,3 +177,14 @@ Each headline number links to the records it counts:
 The filters behind the numbers (`learnerFilter`, `publishedFilter`, `completionsThisMonthFilter`, `inProgressFilter` in `dashboardService`) are shared by the counts and the lists. A list can therefore never disagree with its tile, for example by using a different month boundary. Each list is one MongoDB aggregation with `$facet` (a page of 20 plus the total) and a `$lookup` only for the rows on the page. The in-progress list computes % with the same rule as the rest of the app: only lessons that still exist count.
 
 The pages show learner names and emails, so they are instructor-only (learners get 403; visitors are sent to log in). Instructors can see every course's learners here, in line with decision 5: viewing progress is allowed, and only changes are limited to a course's owner.
+
+## 27. Learners can delete their own account, and only their own
+
+"My account" (click your name in the navbar) shows the signed-in user's details. Learners also get a **Delete my account** section, which requires their current password and a ticked "cannot be undone" box.
+
+- **Only your own account.** The account to delete is `req.user`, from the session. No route takes a user id, so there is nothing to change in a form or URL to target someone else. Extra fields such as `userId` are ignored (tested: Arjun submitting Neha's id deleted Arjun only). The password is checked against the signed-in user's own hash, so knowing someone else's password does not help.
+- **Learners only.** Instructors get 403: they own courses (decision 5), so removing them would orphan those courses. Their accounts are managed by the training team.
+- **What is deleted:** the user and all their enrolments and progress, so dashboards, rosters, exports and alerts no longer count them. Enrolments are deleted before the user, so a failure part-way cannot leave progress counted for a user who no longer exists. The session is replaced, and any other signed-in device is logged out on its next request, because `loadCurrentUser` no longer finds the user. The email address is free to sign up again (with a new verification code).
+- **What is kept:** the course activity logs, which are append-only by design (decision 7). The person's comments stay, attributed to "Deleted user".
+
+**Trade-off:** "learner enrolled" entries in the log copied the learner's name and email when they were written, so those remain in the history. Full erasure under data-protection law would need a redaction policy for the log, which conflicts with "history you cannot rewrite"; for an internal training record, keeping the audit trail was chosen deliberately.

@@ -94,3 +94,17 @@ I asked for the four headline numbers on the instructor dashboard to be clickabl
 - **Two of the four lists failed on the first run.** The helper that joins in learner names and course titles had lost the `$` in front of the field name while being written, so MongoDB received the plain word `learner` instead of the field path `$learner` and rejected the query. The test run surfaced the error; the helper now builds the path as `'$' + field`.
 - **A grouping bug caught before it shipped.** The in-progress list first replaced the learner id it groups by with the learner's details, which would have merged two deleted learners into one row. Changed to keep the id and put the details in a separate field.
 - **Numbers verified against the database:** every list total equals its tile (12, 12, 4, 10 on the seed data). Neha's row (7 enrolled: 3 / 2 / 2) matches a direct count. All 24 in-progress percentages match an independent calculation with the app's own progress function. Pagination was checked with 42 learners (20 + 20 + 2, page 99 redirects to page 3). Learners get 403 and visitors are sent to log in. Tests ran on a separate port and test database, not on my running app.
+
+### Follow-up: learners deleting their own account (my requirement, implemented with the assistant)
+
+I asked for learners to be able to delete their account, only after confirming their password, and with no way to remove anyone else's.
+
+**What came back and was checked:** a "My account" page and a delete action that takes the account from the session only, with no id in any route. It was verified on a separate test database:
+- an empty form and a wrong password are refused, and the account stays;
+- an instructor gets 403, and a visitor is sent to log in;
+- Arjun's request with Neha's id smuggled in as `userId`, `_id`, `id`, `learner` and `email` deleted Arjun only (Neha and her 7 enrolments untouched);
+- no enrolment is left without its user, the activity log kept all 102 entries, and Arjun's comment now shows as "Deleted user";
+- Arjun can no longer log in but can sign up again;
+- Neha's second signed-in device was logged out after she deleted her account.
+
+The first test run's database checks failed because the test helper printed ids as `ObjectId('...')` inside another `ObjectId(...)`; it was rerun with plain ids before relying on the results.
