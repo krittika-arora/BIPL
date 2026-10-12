@@ -1,9 +1,11 @@
 const env = require('./src/config/env');
 const { connectDB } = require('./src/config/db');
 const createApp = require('./src/app');
+const { describeTransport } = require('./src/services/mailService');
 
 async function start() {
   await connectDB(env.mongoUri);
+  console.log(describeTransport());
 
   const app = createApp();
   app.listen(env.port, () => {

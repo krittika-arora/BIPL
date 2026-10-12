@@ -7,7 +7,8 @@
   "scripts": {
     "start": "node index.js",
     "dev": "node --watch index.js",
-    "seed": "node scripts/seed.js"
+    "seed": "node scripts/seed.js",
+    "mail:test": "node scripts/sendTestEmail.js"
   },
   "engines": {
     "node": ">=20.12"
@@ -22,6 +23,7 @@
     "express-session": "^1.19.0",
     "express-validator": "^7.3.2",
     "mongoose": "^9.11.1",
-    "multer": "^2.4.0"
+    "multer": "^2.4.0",
+    "nodemailer": "^10.1.0"
   }
 }
