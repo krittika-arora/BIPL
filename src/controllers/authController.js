@@ -14,6 +14,7 @@ function startSession(req, user) {
     req.session.regenerate((err) => {
       if (err) return reject(err);
       req.session.userId = user.id;
+      req.session.authenticatedAt = Date.now();
       resolve();
     });
   });

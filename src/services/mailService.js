@@ -23,16 +23,30 @@ function getTransporter() {
 
 // One line for the startup log, never including the password.
 function describeTransport() {
-  if (env.mail.transport !== 'smtp') return 'Mail: no SMTP_HOST set, emails will be printed to this console';
+  if (env.mail.transport !== 'smtp') {
+    return 'Mail: no SMTP_HOST set, emails will be printed to this console';
+  }
   const { host, port, secure, user, from } = env.mail;
-  return `Mail: SMTP ${host}:${port} (${secure ? 'TLS' : 'STARTTLS'})${user ? ` as ${user}` : ''}, from ${from}`;
+  const login = user ? ` as ${user}` : '';
+  return `Mail: SMTP ${host}:${port} (${secure ? 'TLS' : 'STARTTLS'})${login}, from ${from}`;
 }
 
 async function sendMail({ to, subject, text, html }) {
   const smtp = getTransporter();
   if (!smtp) {
     // Development only (env.js refuses to start in production without SMTP).
-    console.log(`\n----- email (not sent: no SMTP configured) -----\nTo: ${to}\nSubject: ${subject}\n\n${text}\n-------------------------------------------------\n`);
+    console.log(
+      [
+        '',
+        '----- email (not sent: no SMTP configured) -----',
+        `To: ${to}`,
+        `Subject: ${subject}`,
+        '',
+        text,
+        '-------------------------------------------------',
+        '',
+      ].join('\n'),
+    );
     return { delivered: false };
   }
   await smtp.sendMail({ from: env.mail.from, to, subject, text, html });
@@ -49,7 +63,8 @@ function sendSignupCode({ to, name, code, minutesValid }) {
     '',
     `Your CourseTrack verification code is: ${code}`,
     '',
-    `It expires in ${minutesValid} minutes. If you did not try to create an account, you can ignore this email.`,
+    `It expires in ${minutesValid} minutes.`,
+    'If you did not try to create an account, you can ignore this email.',
   ].join('\n');
 
   const html = `
@@ -58,10 +73,38 @@ function sendSignupCode({ to, name, code, minutesValid }) {
       <p>Your CourseTrack verification code is:</p>
       <p style="font-size: 28px; font-weight: bold; letter-spacing: 6px; margin: 16px 0">${code}</p>
       <p>It expires in ${minutesValid} minutes.</p>
-      <p style="color: #6c757d; font-size: 13px">If you did not try to create an account, you can ignore this email.</p>
+      <p style="color: #6c757d; font-size: 13px">
+        If you did not try to create an account, you can ignore this email.
+      </p>
     </div>`;
 
   return sendMail({ to, subject: 'Your CourseTrack verification code', text, html });
+}
+
+function sendPasswordResetCode({ to, name, code, minutesValid }) {
+  const text = [
+    `Hi ${name},`,
+    '',
+    `Your CourseTrack password reset code is: ${code}`,
+    '',
+    `It expires in ${minutesValid} minutes.`,
+    'If you did not ask to reset your password, you can ignore this email.',
+    'Your password has not been changed.',
+  ].join('\n');
+
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 480px; color: #212529">
+      <p>Hi ${escapeHtml(name)},</p>
+      <p>Your CourseTrack password reset code is:</p>
+      <p style="font-size: 28px; font-weight: bold; letter-spacing: 6px; margin: 16px 0">${code}</p>
+      <p>It expires in ${minutesValid} minutes.</p>
+      <p style="color: #6c757d; font-size: 13px">
+        If you did not ask to reset your password, you can ignore this email.
+        Your password has not been changed.
+      </p>
+    </div>`;
+
+  return sendMail({ to, subject: 'Reset your CourseTrack password', text, html });
 }
 
 async function verifyConnection() {
@@ -71,4 +114,10 @@ async function verifyConnection() {
   return true;
 }
 
-module.exports = { sendMail, sendSignupCode, verifyConnection, describeTransport };
+module.exports = {
+  sendMail,
+  sendSignupCode,
+  sendPasswordResetCode,
+  verifyConnection,
+  describeTransport,
+};

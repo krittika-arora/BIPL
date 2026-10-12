@@ -1,0 +1,59 @@
+<%- include('../partials/header') %>
+<div class="row justify-content-center">
+  <div class="col-sm-10 col-md-6 col-lg-4">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h1 class="h4 mb-1">Set a new password</h1>
+        <p class="text-muted small mb-3">
+          If an account exists for <strong><%= maskedEmail %></strong>, we have emailed it a <%= codeLength %>-digit code.
+          The code expires <%= validMinutes %> minutes after it was sent.
+        </p>
+
+        <form action="/forgot-password/reset" method="post" novalidate>
+          <div class="mb-3">
+            <label for="code" class="form-label">Code from the email</label>
+            <input type="text" id="code" name="code" required autofocus
+                   inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*" maxlength="<%= codeLength + 2 %>"
+                   class="form-control text-center font-monospace <%= errors.code ? 'is-invalid' : '' %>"
+                   placeholder="<%= '0'.repeat(codeLength) %>" style="letter-spacing: .4em">
+            <% if (errors.code) { %><div class="invalid-feedback"><%= errors.code %></div><% } %>
+          </div>
+          <div class="mb-3">
+            <label for="password" class="form-label">New password</label>
+            <input type="password" id="password" name="password" autocomplete="new-password" required
+                   class="form-control <%= errors.password ? 'is-invalid' : '' %>" aria-describedby="passwordHelp">
+            <% if (errors.password) { %>
+              <div class="invalid-feedback"><%= errors.password %></div>
+            <% } else { %>
+              <div id="passwordHelp" class="form-text">At least 8 characters, with a letter and a number.</div>
+            <% } %>
+          </div>
+          <div class="mb-3">
+            <label for="confirmPassword" class="form-label">Confirm new password</label>
+            <input type="password" id="confirmPassword" name="confirmPassword" autocomplete="new-password" required
+                   class="form-control <%= errors.confirmPassword ? 'is-invalid' : '' %>">
+            <% if (errors.confirmPassword) { %><div class="invalid-feedback"><%= errors.confirmPassword %></div><% } %>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Change password</button>
+        </form>
+
+        <hr>
+        <div class="small text-muted">
+          <p class="mb-2">Didn't get it? Check your spam folder, or request a new code.</p>
+          <% if (canResend) { %>
+            <form action="/forgot-password/resend" method="post" class="d-inline">
+              <button type="submit" class="btn btn-link btn-sm p-0 align-baseline">Send a new code</button>
+            </form>
+            <% if (resendInSeconds > 0) { %><span>(available in <%= resendInSeconds %> seconds)</span><% } %>
+          <% } else { %>
+            <span>No more codes can be sent right now.</span>
+          <% } %>
+          <span class="mx-1">&middot;</span>
+          <a href="/forgot-password">Use a different email</a>
+        </div>
+      </div>
+    </div>
+    <p class="text-center text-muted small mt-3"><a href="/login">Back to log in</a></p>
+  </div>
+</div>
+<%- include('../partials/footer') %>

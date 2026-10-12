@@ -8,11 +8,18 @@ async function loadCurrentUser(req, res, next) {
 
   if (req.session.userId) {
     const user = await User.findById(req.session.userId).select('-passwordHash').lean();
-    if (user) {
+    // A password reset ends every session that signed in before it.
+    const changedAt = user && user.passwordChangedAt ? user.passwordChangedAt.getTime() : null;
+    const signedInBeforeReset = changedAt !== null && !(req.session.authenticatedAt >= changedAt);
+    if (user && !signedInBeforeReset) {
       req.user = user;
       res.locals.currentUser = user;
     } else {
       delete req.session.userId;
+      delete req.session.authenticatedAt;
+      if (signedInBeforeReset) {
+        req.flash('info', 'Your password was changed, so please log in again.');
+      }
     }
   }
 

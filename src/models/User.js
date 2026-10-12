@@ -16,6 +16,8 @@ const userSchema = new mongoose.Schema(
       maxlength: 254,
     },
     passwordHash: { type: String, required: true },
+    // Set when the password is reset; sessions that signed in before this are ended.
+    passwordChangedAt: { type: Date, default: null },
     role: {
       type: String,
       enum: Object.values(ROLES),
