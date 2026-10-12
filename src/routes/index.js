@@ -1,5 +1,5 @@
 const express = require('express');
-const { requireAuth, requireRole } = require('../middleware/auth');
+const { requireRole } = require('../middleware/auth');
 const enrollmentController = require('../controllers/enrollmentController');
 const homeController = require('../controllers/homeController');
 const { ROLES } = require('../config/constants');
@@ -10,7 +10,8 @@ const router = express.Router();
 
 router.use(authRoutes);
 
-router.get('/', requireAuth, homeController.index);
+// Public: visitors get the landing page, signed-in users their own home.
+router.get('/', homeController.index);
 
 router.get('/my-learning', requireRole(ROLES.LEARNER), enrollmentController.myLearning);
 router.use('/courses', courseRoutes);

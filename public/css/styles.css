@@ -10,3 +10,26 @@ body {
 .table th {
   vertical-align: middle;
 }
+
+/* Public landing page */
+.hero {
+  background: linear-gradient(135deg, #eef4ff 0%, #f8f9fa 60%, #eefaf3 100%);
+  border: 1px solid #e3e8f0;
+}
+
+.course-card {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.course-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08) !important;
+}
+
+.benefit-number {
+  width: 2.25rem;
+  height: 2.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}

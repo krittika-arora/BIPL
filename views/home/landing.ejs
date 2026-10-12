@@ -1,0 +1,99 @@
+<%- include('../partials/header') %>
+<section class="hero rounded-4 px-4 py-5 px-md-5 mb-5">
+  <div class="row align-items-center g-4">
+    <div class="col-lg-7">
+      <p class="text-uppercase small fw-semibold text-primary mb-2">CourseTrack &middot; internal training</p>
+      <h1 class="display-5 fw-bold mb-3">Learn new skills. Track your growth.</h1>
+      <p class="lead text-body-secondary mb-4">
+        Onboarding, compliance and skills courses in one place. Work through them at your own pace;
+        your progress is saved automatically, lesson by lesson.
+      </p>
+      <div class="d-flex flex-wrap gap-2">
+        <a href="/register" class="btn btn-primary btn-lg">Create a free account</a>
+        <a href="/courses" class="btn btn-outline-primary btn-lg">Browse courses</a>
+      </div>
+      <p class="small text-muted mt-3 mb-0">Already have an account? <a href="/login">Log in</a></p>
+    </div>
+    <div class="col-lg-5">
+      <div class="bg-white border rounded-4 p-4 shadow-sm">
+        <div class="d-flex justify-content-around text-center mb-3">
+          <div>
+            <div class="display-6 fw-semibold"><%= publishedCount %></div>
+            <div class="small text-muted">courses available</div>
+          </div>
+          <div>
+            <div class="display-6 fw-semibold"><%= categoryCount %></div>
+            <div class="small text-muted">categories</div>
+          </div>
+        </div>
+        <p class="small text-muted mb-2">Browse by category</p>
+        <div class="d-flex flex-wrap gap-2">
+          <% categories.forEach((category) => { %>
+            <a href="/courses?category=<%= encodeURIComponent(category) %>"
+               class="badge rounded-pill text-bg-light border text-decoration-none fw-normal py-2 px-3"><%= category %></a>
+          <% }) %>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="mb-5" aria-labelledby="featured-heading">
+  <div class="d-flex justify-content-between align-items-baseline mb-3">
+    <h2 id="featured-heading" class="h4 mb-0">Featured courses</h2>
+    <a href="/courses" class="small">See all courses &rarr;</a>
+  </div>
+  <% if (!featured.length) { %>
+    <p class="text-muted">New courses are on their way. Check back soon.</p>
+  <% } else { %>
+    <div class="row g-3">
+      <% featured.forEach((course) => { %>
+        <div class="col-md-6 col-lg-4">
+          <article class="card h-100 shadow-sm course-card">
+            <div class="card-body d-flex flex-column">
+              <span class="badge text-bg-light border align-self-start fw-normal mb-2"><%= course.category %></span>
+              <h3 class="h6 card-title">
+                <a href="/courses/<%= course._id %>" class="stretched-link text-decoration-none"><%= course.title %></a>
+              </h3>
+              <p class="card-text small text-muted flex-grow-1"><%= truncate(course.description, 120) %></p>
+              <div class="d-flex justify-content-between small text-muted">
+                <span><%= course.instructor ? course.instructor.name : '' %></span>
+                <span><%= course.enrollmentCount %> enrolled</span>
+              </div>
+            </div>
+          </article>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+</section>
+
+<section class="mb-5" aria-labelledby="benefits-heading">
+  <h2 id="benefits-heading" class="h4 mb-3">Why learn with CourseTrack</h2>
+  <div class="row g-3">
+    <% [
+         ['Learn at your own pace', 'Courses are split into short lessons. Pick up exactly where you left off, whenever suits you.'],
+         ['Progress tracked for you', 'Every lesson you finish is recorded automatically. No spreadsheets, no self-reporting.'],
+         ['Always know where you stand', 'See every course you are enrolled in, how far through you are, and what is left.'],
+         ['Courses from your own team', 'Onboarding, compliance and skills content written by the people who run the training.'],
+       ].forEach(([heading, text], index) => { %>
+      <div class="col-sm-6 col-lg-3">
+        <div class="bg-white border rounded-3 p-4 h-100">
+          <div class="benefit-number rounded-circle bg-primary-subtle text-primary fw-semibold mb-3"><%= index + 1 %></div>
+          <h3 class="h6"><%= heading %></h3>
+          <p class="small text-muted mb-0"><%= text %></p>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+</section>
+
+<section class="bg-dark text-white rounded-4 p-4 p-md-5 text-center mb-2">
+  <h2 class="h4 mb-2">Ready to start?</h2>
+  <p class="text-white-50 mb-4">Create your learner account in under a minute.</p>
+  <div class="d-flex flex-wrap justify-content-center gap-2">
+    <a href="/register" class="btn btn-light">Create account</a>
+    <a href="/login" class="btn btn-outline-light">Log in</a>
+  </div>
+</section>
+<%- include('../partials/footer') %>

@@ -87,6 +87,11 @@ async function listCourses(user, params) {
   };
 }
 
+async function countPublishedCategories() {
+  const categories = await Course.distinct('category', { status: COURSE_STATUS.PUBLISHED });
+  return categories.length;
+}
+
 function listInstructors() {
   return User.find({ role: ROLES.INSTRUCTOR }).select('name').sort({ name: 1 }).lean();
 }
@@ -186,6 +191,7 @@ async function transitionCourse(actor, courseId, toStatus) {
 
 module.exports = {
   listCourses,
+  countPublishedCategories,
   listInstructors,
   getVisibleCourse,
   getCourseForEdit,

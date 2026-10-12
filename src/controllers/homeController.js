@@ -1,11 +1,37 @@
 const dashboardService = require('../services/dashboardService');
 const enrollmentService = require('../services/enrollmentService');
-const { ROLES, COURSE_STATUS, PROGRESS_STATUS } = require('../config/constants');
+const courseService = require('../services/courseService');
+const { parseCatalogueQuery } = require('../utils/catalogueQuery');
+const {
+  ROLES,
+  COURSE_STATUS,
+  COURSE_CATEGORIES,
+  PROGRESS_STATUS,
+} = require('../config/constants');
 
 const LEARNER_HOME_LIMIT = 5;
+const FEATURED_LIMIT = 6;
 
-// Instructors land on the dashboard; learners on a summary of their own progress only.
+// Public landing page: only published courses and generic counts, nothing about learners.
+async function landing(req, res) {
+  const params = parseCatalogueQuery({ sort: 'enrollments', dir: 'desc' }, null);
+  const [{ courses, total }, categoryCount] = await Promise.all([
+    courseService.listCourses(null, params),
+    courseService.countPublishedCategories(),
+  ]);
+  res.render('home/landing', {
+    title: 'Learn new skills. Track your growth.',
+    featured: courses.slice(0, FEATURED_LIMIT),
+    publishedCount: total,
+    categoryCount,
+    categories: COURSE_CATEGORIES,
+  });
+}
+
+// Visitors see the landing page; instructors the dashboard; learners their own progress only.
 async function index(req, res) {
+  if (!req.user) return landing(req, res);
+
   if (req.user.role === ROLES.INSTRUCTOR) {
     const dashboard = await dashboardService.getInstructorDashboard();
     return res.render('home/instructor', { title: 'Dashboard', ...dashboard });
