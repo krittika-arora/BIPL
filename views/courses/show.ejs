@@ -26,6 +26,8 @@
   <p class="text-pre-line mb-0"><%= course.description %></p>
 </div>
 
+<%- include('_lessons', { isInstructor }) %>
+
 <% if (isInstructor) { %>
   <section class="bg-white border rounded-3 p-4">
     <h2 class="h5 mb-1">Activity log</h2>

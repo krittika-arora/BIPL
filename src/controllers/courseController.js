@@ -1,5 +1,6 @@
 const courseService = require('../services/courseService');
 const activityService = require('../services/activityService');
+const lessonService = require('../services/lessonService');
 const { ROLES, COURSE_CATEGORIES } = require('../config/constants');
 const { collectErrors } = require('../utils/validation');
 
@@ -14,9 +15,10 @@ async function index(req, res) {
 
 async function show(req, res) {
   const course = await courseService.getVisibleCourse(req.user, req.params.id);
+  const lessons = await lessonService.listLessons(course._id);
   const activity =
     req.user.role === ROLES.INSTRUCTOR ? await activityService.listForCourse(course._id) : [];
-  res.render('courses/show', { title: course.title, course, activity });
+  res.render('courses/show', { title: course.title, course, lessons, activity });
 }
 
 function newForm(req, res) {
