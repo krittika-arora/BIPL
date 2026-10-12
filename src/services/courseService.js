@@ -1,7 +1,13 @@
 const Course = require('../models/Course');
+const Lesson = require('../models/Lesson');
 const activityService = require('./activityService');
 const HttpError = require('../utils/httpError');
-const { ROLES, COURSE_STATUS, ACTIVITY_ACTIONS } = require('../config/constants');
+const {
+  ROLES,
+  COURSE_STATUS,
+  COURSE_TRANSITIONS,
+  ACTIVITY_ACTIONS,
+} = require('../config/constants');
 
 const EDITABLE_FIELDS = ['title', 'description', 'category'];
 
@@ -71,10 +77,42 @@ async function updateCourse(actor, courseId, data) {
   return { course, changes };
 }
 
+// The single entry point for course status changes: draft -> published -> archived, and restore.
+async function transitionCourse(actor, courseId, toStatus) {
+  const course = await getCourseForEdit(courseId);
+  const from = course.status;
+
+  if (!Object.values(COURSE_STATUS).includes(toStatus)) {
+    throw HttpError.ruleViolation(`"${toStatus}" is not a course status.`);
+  }
+  if (!COURSE_TRANSITIONS[from].includes(toStatus)) {
+    const allowed = COURSE_TRANSITIONS[from].join(' or ');
+    throw HttpError.ruleViolation(
+      `This ${from} course cannot be moved to ${toStatus}. It can only be moved to ${allowed}.`,
+    );
+  }
+  if (toStatus === COURSE_STATUS.PUBLISHED) {
+    const lessonCount = await Lesson.countDocuments({ course: course._id });
+    if (lessonCount === 0) {
+      throw HttpError.ruleViolation('A course needs at least one lesson before it can be published.');
+    }
+  }
+
+  // Conditional on the status we checked, so two simultaneous requests cannot both apply.
+  const result = await Course.updateOne({ _id: course._id, status: from }, { $set: { status: toStatus } });
+  if (result.modifiedCount === 0) {
+    throw HttpError.ruleViolation('This course was changed by someone else. Reload and try again.');
+  }
+
+  course.status = toStatus;
+  return { course, from, to: toStatus };
+}
+
 module.exports = {
   listCourses,
   getVisibleCourse,
   getCourseForEdit,
   createCourse,
   updateCourse,
+  transitionCourse,
 };

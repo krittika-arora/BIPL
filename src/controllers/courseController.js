@@ -2,6 +2,7 @@ const courseService = require('../services/courseService');
 const activityService = require('../services/activityService');
 const lessonService = require('../services/lessonService');
 const { ROLES, COURSE_CATEGORIES } = require('../config/constants');
+const HttpError = require('../utils/httpError');
 const { collectErrors } = require('../utils/validation');
 
 function pickCourseFields(body) {
@@ -77,4 +78,21 @@ async function update(req, res) {
   res.redirect(`/courses/${course.id}`);
 }
 
-module.exports = { index, show, newForm, create, editForm, update };
+const TRANSITION_MESSAGES = {
+  draft: { published: 'Course published. Learners can now find and enrol in it.' },
+  published: { archived: 'Course archived. It is hidden from the catalogue; lessons and enrolments are kept.' },
+  archived: { published: 'Course restored and published again.' },
+};
+
+async function changeStatus(req, res) {
+  try {
+    const { from, to } = await courseService.transitionCourse(req.user, req.params.id, req.body.to);
+    req.flash('success', TRANSITION_MESSAGES[from][to]);
+  } catch (err) {
+    if (!HttpError.isRuleViolation(err)) throw err;
+    req.flash('danger', err.message);
+  }
+  res.redirect(`/courses/${req.params.id}`);
+}
+
+module.exports = { index, show, newForm, create, editForm, update, changeStatus };

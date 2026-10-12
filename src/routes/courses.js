@@ -16,6 +16,7 @@ router.post('/', instructorOnly, courseRules, courseController.create);
 router.get('/:id', courseController.show);
 router.get('/:id/edit', instructorOnly, courseController.editForm);
 router.post('/:id/edit', instructorOnly, courseRules, courseController.update);
+router.post('/:id/status', instructorOnly, courseController.changeStatus);
 
 router.use('/:courseId/lessons', lessonRoutes);
 
