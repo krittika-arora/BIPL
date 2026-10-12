@@ -1,6 +1,7 @@
 const enrollmentService = require('../services/enrollmentService');
 const HttpError = require('../utils/httpError');
 const { collectErrors } = require('../utils/validation');
+const { addressesFromText, addressesFromFile, normaliseAddresses } = require('../utils/emailList');
 
 async function enrolSelf(req, res) {
   try {
@@ -32,6 +33,34 @@ async function enrolByEmail(req, res) {
   res.redirect(coursePath);
 }
 
+async function bulkForm(req, res) {
+  const course = await enrollmentService.getCourseForBulkForm(req.params.id);
+  res.render('enrollments/bulk', { title: 'Bulk enrol', course, error: null, emails: '', report: null });
+}
+
+// Accepts pasted addresses, an uploaded .csv/.txt file, or both, and renders a per-address report.
+async function bulkEnrol(req, res) {
+  const course = await enrollmentService.getCourseForBulkForm(req.params.id);
+  const emails = typeof req.body.emails === 'string' ? req.body.emails : '';
+  const renderForm = (status, error, report = null) =>
+    res.status(status).render('enrollments/bulk', { title: 'Bulk enrol', course, error, emails, report });
+
+  if (req.uploadError) return renderForm(422, req.uploadError);
+
+  const raw = [
+    ...addressesFromText(emails),
+    ...(req.file ? addressesFromFile(req.file.buffer.toString('utf8')) : []),
+  ];
+
+  try {
+    const report = await enrollmentService.bulkEnrol(req.user, req.params.id, normaliseAddresses(raw));
+    return renderForm(200, null, report);
+  } catch (err) {
+    if (!HttpError.isRuleViolation(err)) throw err;
+    return renderForm(422, err.message);
+  }
+}
+
 async function myLearning(req, res) {
   const rows = await enrollmentService.listLearnerEnrollments(req.user._id);
   const counts = { not_started: 0, in_progress: 0, completed: 0 };
@@ -39,4 +68,4 @@ async function myLearning(req, res) {
   res.render('enrollments/my-learning', { title: 'My learning', rows, counts });
 }
 
-module.exports = { enrolSelf, enrolByEmail, myLearning };
+module.exports = { enrolSelf, enrolByEmail, bulkForm, bulkEnrol, myLearning };

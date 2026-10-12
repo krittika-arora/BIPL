@@ -50,7 +50,20 @@ const ACTIVITY_ACTIONS = Object.freeze({
   LESSON_UPDATED: 'lesson_updated',
   LESSON_REMOVED: 'lesson_removed',
   LESSON_MOVED: 'lesson_moved',
+  LEARNER_ENROLLED: 'learner_enrolled',
+  LEARNERS_BULK_ENROLLED: 'learners_bulk_enrolled',
 });
+
+// Outcome categories reported for each address in a bulk enrolment.
+const BULK_RESULT = Object.freeze({
+  INVALID: 'invalid',
+  UNKNOWN: 'unknown',
+  NOT_LEARNER: 'not_learner',
+  ALREADY_ENROLLED: 'already_enrolled',
+  ENROLLED: 'enrolled',
+});
+
+const BULK_MAX_ADDRESSES = 500;
 
 module.exports = {
   ROLES,
@@ -60,4 +73,6 @@ module.exports = {
   PROGRESS_TRANSITIONS,
   COURSE_CATEGORIES,
   ACTIVITY_ACTIONS,
+  BULK_RESULT,
+  BULK_MAX_ADDRESSES,
 };

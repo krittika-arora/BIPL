@@ -1,0 +1,89 @@
+<%- include('../partials/header') %>
+<% const RESULT_INFO = {
+     enrolled: { label: 'Newly enrolled', badge: 'text-bg-success' },
+     already_enrolled: { label: 'Already enrolled', badge: 'text-bg-secondary' },
+     unknown: { label: 'Unknown address', badge: 'text-bg-warning' },
+     not_learner: { label: 'Not a learner account', badge: 'text-bg-warning' },
+     invalid: { label: 'Invalid email', badge: 'text-bg-danger' },
+   }; %>
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/courses">Courses</a></li>
+    <li class="breadcrumb-item"><a href="/courses/<%= course._id %>"><%= course.title %></a></li>
+    <li class="breadcrumb-item active" aria-current="page">Bulk enrol</li>
+  </ol>
+</nav>
+
+<div class="row g-4">
+  <div class="col-lg-5">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h1 class="h4 mb-1">Bulk enrol learners</h1>
+        <p class="text-muted small mb-3">
+          Paste email addresses (separated by commas, spaces or new lines), upload a .csv or .txt file, or both.
+          A CSV with an <code>email</code> column header uses only that column.
+        </p>
+        <% if (course.status !== 'published') { %>
+          <div class="alert alert-warning py-2">This course is <%= course.status %>. Learners can only be enrolled in a published course.</div>
+        <% } %>
+        <% if (error) { %>
+          <div class="alert alert-danger py-2" role="alert"><%= error %></div>
+        <% } %>
+        <form action="/courses/<%= course._id %>/enrollments/bulk" method="post" enctype="multipart/form-data">
+          <div class="mb-3">
+            <label for="emails" class="form-label">Email addresses</label>
+            <textarea id="emails" name="emails" rows="8" class="form-control"
+                      placeholder="neha.learner@example.com&#10;arjun.learner@example.com"><%= emails %></textarea>
+          </div>
+          <div class="mb-3">
+            <label for="file" class="form-label">Or upload a file</label>
+            <input type="file" id="file" name="file" accept=".csv,.txt,text/csv,text/plain" class="form-control">
+            <div class="form-text">Up to 100 KB and 500 different addresses.</div>
+          </div>
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">Enrol learners</button>
+            <a href="/courses/<%= course._id %>" class="btn btn-outline-secondary">Back to course</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-7">
+    <% if (report) { %>
+      <section class="bg-white border rounded-3 p-4" aria-live="polite">
+        <h2 class="h5 mb-3">Result for <%= report.rows.length %> <%= report.rows.length === 1 ? 'address' : 'addresses' %></h2>
+        <div class="d-flex flex-wrap gap-2 mb-3">
+          <% Object.entries(RESULT_INFO).forEach(([key, info]) => { %>
+            <span class="badge <%= info.badge %>"><%= info.label %>: <%= report.counts[key] %></span>
+          <% }) %>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm mb-0">
+            <thead class="table-light">
+              <tr><th scope="col">Email</th><th scope="col">Learner</th><th scope="col">Result</th></tr>
+            </thead>
+            <tbody>
+              <% report.rows.forEach((row) => { %>
+                <tr>
+                  <td class="text-break">
+                    <%= row.email %>
+                    <% if (row.occurrences > 1) { %><span class="small text-muted">(listed <%= row.occurrences %> times)</span><% } %>
+                  </td>
+                  <td><%= row.name || '—' %></td>
+                  <td><span class="badge <%= RESULT_INFO[row.result].badge %>"><%= RESULT_INFO[row.result].label %></span></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    <% } else { %>
+      <div class="bg-white border rounded-3 p-4 text-muted">
+        After you submit, every address is listed here with what happened to it:
+        newly enrolled, already enrolled, unknown address, not a learner account, or invalid.
+      </div>
+    <% } %>
+  </div>
+</div>
+<%- include('../partials/footer') %>

@@ -8,6 +8,7 @@
         <input type="email" id="enrolEmail" name="email" class="form-control form-control-sm"
                placeholder="learner@company.com" required>
         <button type="submit" class="btn btn-primary btn-sm text-nowrap">Enrol learner</button>
+        <a href="/courses/<%= course._id %>/enrollments/bulk" class="btn btn-outline-primary btn-sm text-nowrap">Bulk enrol</a>
       </form>
     <% } else { %>
       <span class="text-muted small">Learners can be enrolled once the course is published.</span>

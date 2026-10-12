@@ -3,6 +3,7 @@ const courseController = require('../controllers/courseController');
 const enrollmentController = require('../controllers/enrollmentController');
 const lessonRoutes = require('./lessons');
 const { requireAuth, requireRole } = require('../middleware/auth');
+const { optionalListFile } = require('../middleware/upload');
 const { courseRules } = require('../validators/courseValidators');
 const { enrolByEmailRules } = require('../validators/enrollmentValidators');
 const { ROLES } = require('../config/constants');
@@ -26,6 +27,13 @@ router.post(
   instructorOnly,
   enrolByEmailRules,
   enrollmentController.enrolByEmail,
+);
+router.get('/:id/enrollments/bulk', instructorOnly, enrollmentController.bulkForm);
+router.post(
+  '/:id/enrollments/bulk',
+  instructorOnly,
+  optionalListFile('file'),
+  enrollmentController.bulkEnrol,
 );
 
 router.use('/:courseId/lessons', lessonRoutes);
