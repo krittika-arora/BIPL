@@ -35,13 +35,13 @@ async function enrolByEmail(req, res) {
 }
 
 async function bulkForm(req, res) {
-  const course = await enrollmentService.getCourseForBulkForm(req.params.id);
+  const course = await enrollmentService.getCourseForBulkForm(req.params.id, req.user);
   res.render('enrollments/bulk', { title: 'Bulk enrol', course, error: null, emails: '', report: null });
 }
 
 // Accepts pasted addresses, an uploaded .csv/.txt file, or both, and renders a per-address report.
 async function bulkEnrol(req, res) {
-  const course = await enrollmentService.getCourseForBulkForm(req.params.id);
+  const course = await enrollmentService.getCourseForBulkForm(req.params.id, req.user);
   const emails = typeof req.body.emails === 'string' ? req.body.emails : '';
   const renderForm = (status, error, report = null) =>
     res.status(status).render('enrollments/bulk', { title: 'Bulk enrol', course, error, emails, report });

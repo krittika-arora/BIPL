@@ -84,7 +84,7 @@ async function create(req, res) {
 }
 
 async function editForm(req, res) {
-  const course = await courseService.getCourseForEdit(req.params.id);
+  const course = await courseService.getCourseForEdit(req.params.id, req.user);
   res.render('courses/edit', {
     title: `Edit ${course.title}`,
     course,
@@ -98,7 +98,7 @@ async function update(req, res) {
   const values = pickCourseFields(req.body);
   const errors = collectErrors(req);
   if (errors) {
-    const course = await courseService.getCourseForEdit(req.params.id);
+    const course = await courseService.getCourseForEdit(req.params.id, req.user);
     return res.status(422).render('courses/edit', {
       title: `Edit ${course.title}`,
       course,

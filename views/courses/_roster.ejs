@@ -7,7 +7,9 @@
         <a href="/courses/<%= course._id %>/progress.csv" class="btn btn-outline-secondary btn-sm">Export CSV</a>
       <% } %>
     </div>
-    <% if (course.status === 'published') { %>
+    <% if (!isOwner) { %>
+      <span class="text-muted small">Only the course's instructor can enrol learners.</span>
+    <% } else if (course.status === 'published') { %>
       <form action="/courses/<%= course._id %>/enrollments" method="post" class="d-flex gap-2" novalidate>
         <label for="enrolEmail" class="visually-hidden">Learner email</label>
         <input type="email" id="enrolEmail" name="email" class="form-control form-control-sm"

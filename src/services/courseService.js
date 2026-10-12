@@ -4,6 +4,7 @@ const User = require('../models/User');
 const Enrollment = require('../models/Enrollment');
 const activityService = require('./activityService');
 const HttpError = require('../utils/httpError');
+const { assertCourseOwner } = require('../utils/ownership');
 const { PAGE_SIZE, SORT_FIELDS, buildCatalogueFilter } = require('../utils/catalogueQuery');
 const {
   ROLES,
@@ -98,9 +99,11 @@ async function getVisibleCourse(user, courseId) {
   return course;
 }
 
-async function getCourseForEdit(courseId) {
+// The course as a document the actor may change. Only its owner gets past this.
+async function getCourseForEdit(courseId, actor) {
   const course = await Course.findById(courseId);
   if (!course) throw new HttpError(404, 'Course not found.');
+  assertCourseOwner(actor, course);
   return course;
 }
 
@@ -122,7 +125,7 @@ async function createCourse(actor, data) {
 
 // Applies only the fields that actually changed and logs them as { field, from, to }.
 async function updateCourse(actor, courseId, data) {
-  const course = await getCourseForEdit(courseId);
+  const course = await getCourseForEdit(courseId, actor);
 
   const changes = [];
   for (const field of EDITABLE_FIELDS) {
@@ -146,7 +149,7 @@ async function updateCourse(actor, courseId, data) {
 
 // The single entry point for course status changes: draft -> published -> archived, and restore.
 async function transitionCourse(actor, courseId, toStatus) {
-  const course = await getCourseForEdit(courseId);
+  const course = await getCourseForEdit(courseId, actor);
   const from = course.status;
 
   if (!Object.values(COURSE_STATUS).includes(toStatus)) {

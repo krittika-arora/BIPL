@@ -1,5 +1,6 @@
 <%- include('../partials/header') %>
 <% const isInstructor = currentUser.role === 'instructor'; %>
+<% const isOwner = isCourseOwner(currentUser, course); %>
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="/courses">Courses</a></li>
@@ -25,26 +26,34 @@
              archived: { to: 'published', label: 'Restore', style: 'btn-outline-success' },
            }[course.status]; %>
         <span class="badge text-capitalize <%= statusBadge(course.status) %>"><%= course.status %></span>
-        <a href="/courses/<%= course._id %>/edit" class="btn btn-outline-primary btn-sm">Edit</a>
-        <form action="/courses/<%= course._id %>/status" method="post"
-              <% if (NEXT_ACTION.confirm) { %>onsubmit="return confirm('<%= NEXT_ACTION.confirm %>');"<% } %>>
-          <input type="hidden" name="to" value="<%= NEXT_ACTION.to %>">
-          <button type="submit" class="btn btn-sm <%= NEXT_ACTION.style %>"><%= NEXT_ACTION.label %></button>
-        </form>
+        <% if (isOwner) { %>
+          <a href="/courses/<%= course._id %>/edit" class="btn btn-outline-primary btn-sm">Edit</a>
+          <form action="/courses/<%= course._id %>/status" method="post"
+                <% if (NEXT_ACTION.confirm) { %>onsubmit="return confirm('<%= NEXT_ACTION.confirm %>');"<% } %>>
+            <input type="hidden" name="to" value="<%= NEXT_ACTION.to %>">
+            <button type="submit" class="btn btn-sm <%= NEXT_ACTION.style %>"><%= NEXT_ACTION.label %></button>
+          </form>
+        <% } %>
       <% } %>
     </div>
   </div>
   <p class="text-pre-line mb-0"><%= course.description %></p>
+  <% if (isInstructor && !isOwner) { %>
+    <div class="alert alert-light border small mt-3 mb-0" role="note">
+      This course belongs to <%= course.instructor ? course.instructor.name : 'another instructor' %>.
+      You can view it, follow its learners' progress and export it; only they can change it or enrol learners.
+    </div>
+  <% } %>
 </div>
 
 <% if (!isInstructor) { %>
   <%- include('_enrollment', { enrollment }) %>
 <% } %>
 
-<%- include('_lessons', { isInstructor }) %>
+<%- include('_lessons', { isInstructor, isOwner }) %>
 
 <% if (isInstructor) { %>
-  <%- include('_roster', { roster }) %>
+  <%- include('_roster', { roster, isOwner }) %>
 <% } %>
 
 <% const canComment = isInstructor || Boolean(enrollment); %>

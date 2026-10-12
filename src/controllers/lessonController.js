@@ -50,7 +50,7 @@ async function complete(req, res) {
 }
 
 async function newForm(req, res) {
-  const course = await lessonService.getEditableCourse(req.params.courseId);
+  const course = await lessonService.getEditableCourse(req.params.courseId, req.user);
   res.render('lessons/new', { title: 'New lesson', course, errors: {}, values: {} });
 }
 
@@ -58,7 +58,7 @@ async function create(req, res) {
   const values = pickLessonFields(req.body);
   const errors = collectErrors(req);
   if (errors) {
-    const course = await lessonService.getEditableCourse(req.params.courseId);
+    const course = await lessonService.getEditableCourse(req.params.courseId, req.user);
     return res.status(422).render('lessons/new', { title: 'New lesson', course, errors, values });
   }
 
@@ -68,7 +68,7 @@ async function create(req, res) {
 }
 
 async function editForm(req, res) {
-  const course = await lessonService.getEditableCourse(req.params.courseId);
+  const course = await lessonService.getEditableCourse(req.params.courseId, req.user);
   const lesson = await lessonService.getLesson(course._id, req.params.lessonId);
   res.render('lessons/edit', {
     title: `Edit ${lesson.title}`,
@@ -83,7 +83,7 @@ async function update(req, res) {
   const values = pickLessonFields(req.body);
   const errors = collectErrors(req);
   if (errors) {
-    const course = await lessonService.getEditableCourse(req.params.courseId);
+    const course = await lessonService.getEditableCourse(req.params.courseId, req.user);
     const lesson = await lessonService.getLesson(course._id, req.params.lessonId);
     return res.status(422).render('lessons/edit', {
       title: `Edit ${lesson.title}`,

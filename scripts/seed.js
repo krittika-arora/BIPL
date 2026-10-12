@@ -241,7 +241,7 @@ async function seed() {
 
   // A few later edits so activity logs show more than creation.
   const safety = await Course.findOne({ title: 'Workplace Safety Essentials' });
-  await courseService.updateCourse(instructors[1], safety._id, {
+  await courseService.updateCourse(instructors[0], safety._id, {
     description: `${safety.description} Includes the updated 2026 evacuation map.`,
   });
   const onboarding = await Course.findOne({ title: 'New Joiner Onboarding' });

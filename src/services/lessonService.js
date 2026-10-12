@@ -3,6 +3,7 @@ const Lesson = require('../models/Lesson');
 const progressService = require('./progressService');
 const activityService = require('./activityService');
 const HttpError = require('../utils/httpError');
+const { assertCourseOwner } = require('../utils/ownership');
 const { COURSE_STATUS, ACTIVITY_ACTIONS } = require('../config/constants');
 
 const EDITABLE_FIELDS = ['title', 'content'];
@@ -35,10 +36,12 @@ function logLessonActivity(actor, course, action, lessonTitle, changes = []) {
   });
 }
 
-// Lessons of an archived course are frozen until it is restored.
-async function getEditableCourse(courseId) {
+// Only the course's owner can change its lessons, and an archived course's lessons are
+// frozen until it is restored.
+async function getEditableCourse(courseId, actor) {
   const course = await Course.findById(courseId);
   if (!course) throw new HttpError(404, 'Course not found.');
+  assertCourseOwner(actor, course);
   if (course.status === COURSE_STATUS.ARCHIVED) {
     throw HttpError.ruleViolation('This course is archived. Restore it before changing its lessons.');
   }
@@ -46,7 +49,7 @@ async function getEditableCourse(courseId) {
 }
 
 async function addLesson(actor, courseId, data) {
-  const course = await getEditableCourse(courseId);
+  const course = await getEditableCourse(courseId, actor);
   const last = await Lesson.findOne({ course: course._id }).sort({ position: -1 }).select('position').lean();
 
   const lesson = await Lesson.create({
@@ -60,7 +63,7 @@ async function addLesson(actor, courseId, data) {
 }
 
 async function updateLesson(actor, courseId, lessonId, data) {
-  const course = await getEditableCourse(courseId);
+  const course = await getEditableCourse(courseId, actor);
   const lesson = await getLesson(course._id, lessonId);
 
   const changes = [];
@@ -80,7 +83,7 @@ async function updateLesson(actor, courseId, lessonId, data) {
 
 // Removes a lesson and closes the gap so positions stay 1..n.
 async function removeLesson(actor, courseId, lessonId) {
-  const course = await getEditableCourse(courseId);
+  const course = await getEditableCourse(courseId, actor);
   const lesson = await getLesson(course._id, lessonId);
 
   if (course.status === COURSE_STATUS.PUBLISHED) {
@@ -107,7 +110,7 @@ async function moveLesson(actor, courseId, lessonId, direction) {
   if (!['up', 'down'].includes(direction)) {
     throw new HttpError(400, 'Direction must be up or down.');
   }
-  const course = await getEditableCourse(courseId);
+  const course = await getEditableCourse(courseId, actor);
   const lesson = await getLesson(course._id, lessonId);
 
   const neighbourPosition = direction === 'up' ? lesson.position - 1 : lesson.position + 1;

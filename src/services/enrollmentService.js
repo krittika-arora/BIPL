@@ -4,6 +4,7 @@ const Lesson = require('../models/Lesson');
 const User = require('../models/User');
 const activityService = require('./activityService');
 const HttpError = require('../utils/httpError');
+const { assertCourseOwner } = require('../utils/ownership');
 const { isValidEmail } = require('../utils/emailList');
 const { countCompleted, progressPercent } = require('../utils/progress');
 const {
@@ -51,9 +52,10 @@ async function enrolSelf(learner, courseId) {
 
 // Instructors enrol one learner at a time by email address.
 // Instructors can see unpublished courses, so they get a reason rather than a 404.
-async function getCourseOpenForEnrolment(courseId) {
+async function getCourseOpenForEnrolment(courseId, actor) {
   const course = await Course.findById(courseId);
   if (!course) throw new HttpError(404, 'Course not found.');
+  assertCourseOwner(actor, course);
   if (course.status !== COURSE_STATUS.PUBLISHED) {
     throw HttpError.ruleViolation('Learners can only be enrolled in a published course.');
   }
@@ -61,14 +63,15 @@ async function getCourseOpenForEnrolment(courseId) {
 }
 
 // For the bulk form: the course in any status (404 if missing), so the page can explain.
-async function getCourseForBulkForm(courseId) {
+async function getCourseForBulkForm(courseId, actor) {
   const course = await Course.findById(courseId).lean();
   if (!course) throw new HttpError(404, 'Course not found.');
+  assertCourseOwner(actor, course);
   return course;
 }
 
 async function enrolByEmail(actor, courseId, email) {
-  const course = await getCourseOpenForEnrolment(courseId);
+  const course = await getCourseOpenForEnrolment(courseId, actor);
   const learner = await User.findOne({ email }).lean();
   if (!learner) {
     throw HttpError.ruleViolation(`No account found for ${email}.`);
@@ -94,7 +97,7 @@ async function enrolByEmail(actor, courseId, email) {
 // Enrols every valid learner address and reports, per address, exactly what happened.
 // One bad address never stops the others.
 async function bulkEnrol(actor, courseId, addresses) {
-  const course = await getCourseOpenForEnrolment(courseId);
+  const course = await getCourseOpenForEnrolment(courseId, actor);
   if (!addresses.length) {
     throw HttpError.ruleViolation('Paste at least one email address or upload a file.');
   }
