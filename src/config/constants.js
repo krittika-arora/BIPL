@@ -68,19 +68,19 @@ const BULK_RESULT = Object.freeze({
 
 const BULK_MAX_ADDRESSES = 500;
 
-// Email verification at sign-up.
-const SIGNUP_CODE = Object.freeze({
+// One-time codes sent by email (sign-up verification and password reset).
+const EMAIL_CODE = Object.freeze({
   LENGTH: 6,
   VALID_MINUTES: 10, // how long one emailed code works
   MAX_ATTEMPTS: 5, // wrong guesses before the sign-up is cancelled
   RESEND_COOLDOWN_SECONDS: 60, // minimum gap between emails to the same address
   MAX_SENDS: 5, // emails per pending sign-up, so nobody can flood an inbox
-  PENDING_MINUTES: 60, // an unfinished sign-up is deleted after this long
+  PENDING_MINUTES: 60, // an unfinished sign-up or reset request is deleted after this long
 });
 
 module.exports = {
   ROLES,
-  SIGNUP_CODE,
+  EMAIL_CODE,
   COURSE_STATUS,
   COURSE_TRANSITIONS,
   PROGRESS_STATUS,

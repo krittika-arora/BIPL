@@ -2,7 +2,7 @@ const User = require('../models/User');
 const signupService = require('../services/signupService');
 const env = require('../config/env');
 const HttpError = require('../utils/httpError');
-const { SIGNUP_CODE } = require('../config/constants');
+const { EMAIL_CODE } = require('../config/constants');
 const { collectErrors } = require('../utils/validation');
 const { safeLocalPath } = require('../utils/safeRedirect');
 
@@ -84,7 +84,7 @@ async function register(req, res) {
   // Only the email and return path live in the session; the code is never stored anywhere readable.
   req.session.pendingSignup = { email: req.body.email, next: values.next };
   const masked = signupService.maskEmail(req.body.email);
-  req.flash('info', `We have emailed a ${SIGNUP_CODE.LENGTH}-digit code to ${masked}.`);
+  req.flash('info', `We have emailed a ${EMAIL_CODE.LENGTH}-digit code to ${masked}.`);
   res.redirect('/register/verify');
 }
 
@@ -92,8 +92,8 @@ function renderVerify(res, status, { email, signupStatus, error = null }) {
   res.status(status).render('auth/verify', {
     title: 'Verify your email',
     maskedEmail: signupService.maskEmail(email),
-    validMinutes: SIGNUP_CODE.VALID_MINUTES,
-    codeLength: SIGNUP_CODE.LENGTH,
+    validMinutes: EMAIL_CODE.VALID_MINUTES,
+    codeLength: EMAIL_CODE.LENGTH,
     signupStatus,
     error,
     // Shown only when no SMTP server is configured (never in production; see env.js).
