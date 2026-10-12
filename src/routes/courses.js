@@ -4,6 +4,7 @@ const enrollmentController = require('../controllers/enrollmentController');
 const lessonRoutes = require('./lessons');
 const { requireAuth, requireRole } = require('../middleware/auth');
 const { courseRules } = require('../validators/courseValidators');
+const { enrolByEmailRules } = require('../validators/enrollmentValidators');
 const { ROLES } = require('../config/constants');
 
 const router = express.Router();
@@ -20,6 +21,12 @@ router.get('/:id/edit', instructorOnly, courseController.editForm);
 router.post('/:id/edit', instructorOnly, courseRules, courseController.update);
 router.post('/:id/status', instructorOnly, courseController.changeStatus);
 router.post('/:id/enroll', learnerOnly, enrollmentController.enrolSelf);
+router.post(
+  '/:id/enrollments',
+  instructorOnly,
+  enrolByEmailRules,
+  enrollmentController.enrolByEmail,
+);
 
 router.use('/:courseId/lessons', lessonRoutes);
 

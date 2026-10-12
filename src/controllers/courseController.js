@@ -20,10 +20,18 @@ async function show(req, res) {
   const lessons = await lessonService.listLessons(course._id);
   const isInstructor = req.user.role === ROLES.INSTRUCTOR;
   const activity = isInstructor ? await activityService.listForCourse(course._id) : [];
+  const roster = isInstructor ? await enrollmentService.listCourseEnrollments(course._id) : [];
   const enrollment = isInstructor
     ? null
     : await enrollmentService.findEnrollment(req.user._id, course._id).lean();
-  res.render('courses/show', { title: course.title, course, lessons, activity, enrollment });
+  res.render('courses/show', {
+    title: course.title,
+    course,
+    lessons,
+    activity,
+    roster,
+    enrollment,
+  });
 }
 
 function newForm(req, res) {

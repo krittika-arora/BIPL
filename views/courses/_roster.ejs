@@ -1,0 +1,43 @@
+<section class="bg-white border rounded-3 p-4 mb-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
+    <h2 class="h5 mb-0">Learners <span class="text-muted fw-normal">(<%= roster.length %>)</span></h2>
+    <% if (course.status === 'published') { %>
+      <form action="/courses/<%= course._id %>/enrollments" method="post" class="d-flex gap-2" novalidate>
+        <label for="enrolEmail" class="visually-hidden">Learner email</label>
+        <input type="email" id="enrolEmail" name="email" class="form-control form-control-sm"
+               placeholder="learner@company.com" required>
+        <button type="submit" class="btn btn-primary btn-sm text-nowrap">Enrol learner</button>
+      </form>
+    <% } else { %>
+      <span class="text-muted small">Learners can be enrolled once the course is published.</span>
+    <% } %>
+  </div>
+
+  <% if (!roster.length) { %>
+    <p class="text-muted mb-0">Nobody is enrolled yet.</p>
+  <% } else { %>
+    <div class="table-responsive">
+      <table class="table table-sm mb-0">
+        <thead class="table-light">
+          <tr>
+            <th scope="col">Learner</th>
+            <th scope="col">Status</th>
+            <th scope="col">Enrolled</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% roster.forEach((row) => { %>
+            <tr>
+              <td>
+                <%= row.learner ? row.learner.name : 'Deleted user' %>
+                <div class="small text-muted"><%= row.learner ? row.learner.email : '' %></div>
+              </td>
+              <td><span class="badge <%= progressBadge(row.status) %>"><%= progressLabel(row.status) %></span></td>
+              <td class="text-nowrap"><%= formatDate(row.createdAt) %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>
