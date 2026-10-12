@@ -4,6 +4,10 @@
 **Repository:** https://github.com/krittika-arora/BIPL
 **Live application:** not deployed yet (planned for session 4)
 
+## Without logging in
+
+Open the app without signing in to see the public side: a landing page (platform name, hero, featured courses, benefits, log in / register), the course catalogue with search, filters, sorting and pagination, and course pages with descriptions and lesson titles. Only published courses appear. Drafts, archived courses, lesson content, learner details, progress and comments are never shown to visitors (decision 23). "Log in to enrol" brings people back to the course after they sign in (decision 24).
+
 ## Demo credentials
 
 Created by `npm run seed`. These are demo-only accounts.

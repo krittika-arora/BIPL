@@ -57,3 +57,11 @@ While reviewing the app as an instructor, I asked how instructors could edit eac
 **What came back and was checked:** one ownership check in `src/utils/ownership.js`, called inside the service functions that load a course for changing, rather than in each route. Signed in as Rahul and tried every action on Ananya's course: viewing, progress and export returned 200; edit form and submit, publish, archive, add/edit/move/remove lesson, single and bulk enrolment (form and submit) all returned 403, and the course, its lessons and its enrolments were unchanged afterwards. Both instructors could still do everything on their own courses.
 
 **Correction this forced:** the seed had one instructor editing the other's course description to give the log some history. That now (correctly) fails, so the seed makes that edit as the course's owner.
+
+### Follow-up: public landing page and catalogue (my requirement, implemented with the assistant)
+
+I asked for a public side to the app: a landing page with the platform name, navigation, a hero ("Learn new skills. Track your growth."), featured courses, benefits and login/register buttons, plus a public catalogue of published courses with search, filters, sorting, pagination, instructor names and enrolment counts. Drafts and archived courses must stay hidden, and nothing sensitive should show.
+
+**What came back and was checked:** instead of a separate public code path, the existing visibility rule was extended so a visitor is treated like a learner (published only), and the course page renders a visitor version. Verified signed out: catalogue and course pages work, `?status=draft` is ignored, draft and archived course pages return 404, and the page source contains no emails, roster, progress, comments, lesson content or lesson links. Every protected page and every POST redirects to login and writes nothing. Signed-in instructors and learners see exactly what they did before.
+
+**Something added that I had not asked for:** returning visitors to the page they wanted after logging in. Because that takes a URL from the query string, it was checked against open-redirect tricks (decision 24).

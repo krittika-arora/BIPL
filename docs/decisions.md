@@ -126,3 +126,24 @@ The dashboard needs weeks of history, but every service stamps "now". The seed t
 Later edits and comments keep their real time. A fixed random seed means every run gives the same data.
 
 This is the one place outside the app that writes timestamps, and it has to use the raw driver: Mongoose treats `createdAt` as immutable, and the activity log's append-only guard (correctly) refuses the change. It runs only straight after the seed has dropped and rebuilt the database, before anyone uses the app. A check after seeding confirmed that no enrolment predates its course, no completion predates its enrolment or lies in the future, nobody in progress has been quiet for over 14 days, and every "instructor enrolled" entry matches its enrolment's time.
+
+## 23. A public front door, with only generic information
+
+Visitors who are not signed in can see the landing page (`/`), the catalogue (`/courses`) and course pages (`/courses/:id`), so people can find out what is on offer before they have an account. Everything else redirects them to log in.
+
+| Visible to visitors | Never visible to visitors |
+| --- | --- |
+| Published courses: title, category, description, instructor name, lesson titles, enrolment count | Draft and archived courses (404, and excluded from every list and count) |
+| Catalogue search, category and instructor filters, sorting, pagination | The status filter and status badges (ignored and hidden) |
+| Number of published courses and categories on the landing page | Lesson content (requires enrolment) |
+| Featured courses (the most-enrolled published courses) | Learner names, emails, progress and the roster |
+| | The activity log and comments |
+| | Any instructor email address |
+
+The same server-side filter that limits learners to published courses now treats "no user" the same way, so there is one rule, not two. Pages render a visitor version rather than relying on hidden buttons. Every change still requires a signed-in user with the right role: visitors who POST anything are redirected to log in, and nothing is written.
+
+**Why enrolment counts are shown:** they are aggregate numbers that help people choose a course, and they identify no one.
+
+## 24. "Return to where you were" after logging in, without an open redirect
+
+A visitor who clicks "Log in to enrol", or opens a link to a lesson, is sent to `/login?next=<that page>` and comes back to it after logging in or registering. The `next` value is carried in a hidden form field so it survives a wrong password. It is validated twice, when the form is shown and when it is submitted (`src/utils/safeRedirect.js`). Only a path inside this app is accepted: it must start with a single `/` and contain no backslashes or control characters. Anything else falls back to `/`, so a crafted link cannot send someone to another site after they sign in. Tested with `https://`, `//`, `/\\`, `javascript:`, a bare domain and a CR/LF header-injection attempt: all landed on `/`.
