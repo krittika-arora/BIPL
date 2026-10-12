@@ -19,10 +19,13 @@ async function loadCurrentUser(req, res, next) {
   next();
 }
 
+// Visitors are sent to log in. For page views, the page they wanted is passed along as
+// ?next= so they come back to it afterwards (validated again in authController).
 function requireAuth(req, res, next) {
   if (!req.user) {
     req.flash('warning', 'Please log in to continue.');
-    return res.redirect('/login');
+    const returnTo = req.method === 'GET' ? `?next=${encodeURIComponent(req.originalUrl)}` : '';
+    return res.redirect(`/login${returnTo}`);
   }
   next();
 }

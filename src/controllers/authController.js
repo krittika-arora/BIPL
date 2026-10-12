@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const { ROLES } = require('../config/constants');
 const { collectErrors } = require('../utils/validation');
+const { safeLocalPath } = require('../utils/safeRedirect');
 
 // Issues a fresh session id on sign-in to prevent session fixation.
 function startSession(req, user) {
@@ -13,12 +14,18 @@ function startSession(req, user) {
   });
 }
 
+// Where to go after signing in: the validated ?next= path, otherwise home.
+function returnPath(value) {
+  return safeLocalPath(value) || '/';
+}
+
 function showLogin(req, res) {
-  res.render('auth/login', { title: 'Log in', errors: {}, values: {} });
+  const values = { next: safeLocalPath(req.query.next) || '' };
+  res.render('auth/login', { title: 'Log in', errors: {}, values });
 }
 
 async function login(req, res) {
-  const values = { email: req.body.email };
+  const values = { email: req.body.email, next: safeLocalPath(req.body.next) || '' };
   const errors = collectErrors(req);
   if (errors) {
     return res.status(422).render('auth/login', { title: 'Log in', errors, values });
@@ -36,16 +43,21 @@ async function login(req, res) {
 
   await startSession(req, user);
   req.flash('success', `Welcome back, ${user.name}.`);
-  res.redirect('/');
+  res.redirect(returnPath(req.body.next));
 }
 
 function showRegister(req, res) {
-  res.render('auth/register', { title: 'Create account', errors: {}, values: {} });
+  const values = { next: safeLocalPath(req.query.next) || '' };
+  res.render('auth/register', { title: 'Create account', errors: {}, values });
 }
 
 // Self-registration always creates a learner; instructor accounts are provisioned separately.
 async function register(req, res) {
-  const values = { name: req.body.name, email: req.body.email };
+  const values = {
+    name: req.body.name,
+    email: req.body.email,
+    next: safeLocalPath(req.body.next) || '',
+  };
   const renderWithErrors = (errors) =>
     res.status(422).render('auth/register', { title: 'Create account', errors, values });
 
@@ -74,7 +86,7 @@ async function register(req, res) {
 
   await startSession(req, user);
   req.flash('success', 'Your account has been created.');
-  res.redirect('/');
+  res.redirect(returnPath(req.body.next));
 }
 
 function logout(req, res, next) {

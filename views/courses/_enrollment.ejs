@@ -6,8 +6,9 @@
         <p class="text-muted mb-0">Log in or create a free learner account to enrol and track your progress.</p>
       </div>
       <div class="d-flex gap-2">
-        <a href="/login" class="btn btn-primary">Log in to enrol</a>
-        <a href="/register" class="btn btn-outline-primary">Create account</a>
+        <% const back = encodeURIComponent(`/courses/${course._id}`); %>
+        <a href="/login?next=<%= back %>" class="btn btn-primary">Log in to enrol</a>
+        <a href="/register?next=<%= back %>" class="btn btn-outline-primary">Create account</a>
       </div>
     </div>
   <% } else if (!enrollment) { %>
