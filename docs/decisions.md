@@ -188,3 +188,16 @@ The pages show learner names and emails, so they are instructor-only (learners g
 - **What is kept:** the course activity logs, which are append-only by design (decision 7). The person's comments stay, attributed to "Deleted user".
 
 **Trade-off:** "learner enrolled" entries in the log copied the learner's name and email when they were written, so those remain in the history. Full erasure under data-protection law would need a redaction policy for the log, which conflicts with "history you cannot rewrite"; for an internal training record, keeping the audit trail was chosen deliberately.
+
+## 28. Forgot password: an emailed code, without revealing who has an account
+
+"Forgot password?" on the login page asks for an email, sends a 6-digit code to it, and then takes the code plus a new password (the same strength rules as sign-up). It works for learners and instructors. It reuses the sign-up code machinery (`src/utils/oneTimeCode.js`): 10-minute codes stored only as an HMAC, 5 attempts counted atomically, 60 seconds between emails and at most 5 per request. The HMAC includes the purpose (`signup` or `password-reset`), so a code from one flow can never be used in the other.
+
+**No account enumeration.** Every email address gets the same response ("if an account exists for ..., we have emailed it a code") and the same next page. A code is only emailed, and a `PasswordReset` record only created, for a real account. To keep behaviour identical:
+- every failure has one message, "That code is not correct or has expired";
+- attempts and resends are also counted in the visitor's session, so the "too many incorrect codes" cut-off happens after five tries whether or not the account exists;
+- the per-address limits are applied silently.
+
+(Tested: the reset page's HTML is identical for a known and an unknown address apart from the masked email.) One accepted exception: if the mail server is down, a real account's request reports the failure while an unknown one does not.
+
+**A reset signs out every existing session.** Setting a new password stamps `User.passwordChangedAt`. Each session records when it signed in (`authenticatedAt`), and `loadCurrentUser` ends any session that signed in before the change. Someone who had stolen a session cookie, or a forgotten logged-in laptop, is locked out by the reset. After resetting, the person logs in with the new password rather than being signed in automatically, which confirms they know it.

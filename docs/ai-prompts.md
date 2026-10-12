@@ -108,3 +108,20 @@ I asked for learners to be able to delete their account, only after confirming t
 - Neha's second signed-in device was logged out after she deleted her account.
 
 The first test run's database checks failed because the test helper printed ids as `ObjectId('...')` inside another `ObjectId(...)`; it was rerun with plain ids before relying on the results.
+
+### Follow-up: forgot password (my requirement, implemented with the assistant)
+
+I asked for a forgot-password option on the login page.
+
+**What came back:** a reset by emailed code, built on the same code helpers as sign-up (moved first into `src/utils/oneTimeCode.js` in a separate refactor commit, with sign-up re-tested after the move). It never reveals whether an email has an account, and a successful reset signs the account out everywhere (decision 28).
+
+**What was checked and corrected:**
+
+- **A mistake that used my real Gmail.** By this point my `.env` contained my Gmail SMTP settings. Two test steps ran without overriding them: re-registering a deleted demo learner in the account-deletion test, and a direct call to the new reset email function. Both sent real emails from my account to addresses that cannot receive mail (`arjun.learner@example.com`, `a@b.c`), which produced bounce notices and nothing more. The assistant noticed it from the `delivered: true` result and told me. Since then every test loads a fixed test environment that points email at a local fake SMTP server and uses a separate test database.
+- **A generated line break broke the email module.** The new reset email's text was joined with a literal line break instead of `'\\n'`, a syntax error caught when the module failed to load. Fixed, along with some over-long lines in the mail code.
+- **16 scenarios passed:**
+  - the same page and no email for an unknown address, and exactly one email for a known one;
+  - a wrong code shows the attempts left, and a weak or mismatched new password is refused without using up an attempt;
+  - a successful reset logs out a second signed-in device; the old password stops working and the new one works; a used code cannot be reused;
+  - five wrong codes end the attempt identically for known and unknown addresses;
+  - the resend cooldown holds, instructors can reset, and a sign-up code cannot be used as a reset code.

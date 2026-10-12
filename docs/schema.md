@@ -10,6 +10,7 @@ MongoDB via Mongoose. All collections have `createdAt`; mutable ones also have `
 | email | String | required, unique index, stored lowercase |
 | passwordHash | String | bcrypt, 12 rounds; the plain password is never stored |
 | role | String | `instructor` or `learner`, default `learner` |
+| passwordChangedAt | Date or null | set by a password reset; any session that signed in before it is ended |
 
 ## Course (`courses`)
 
@@ -35,6 +36,19 @@ A sign-up waiting for its email to be confirmed. The `User` is only created once
 | attempts | Number | wrong guesses on the current code; 5 cancels the sign-up |
 | sendCount, lastSentAt | Number, Date | rate limiting: 60 s between emails, at most 5 per pending sign-up |
 | expiresAt | Date | **TTL index**: MongoDB deletes the document 60 minutes after the last email |
+
+## PasswordReset (`passwordresets`)
+
+An outstanding "forgot password" request. Only created for real accounts; see decision 28 for why that is never visible from outside.
+
+| Field | Type | Rules |
+| --- | --- | --- |
+| email | String | unique, lowercase |
+| codeHash | String | HMAC-SHA256 of `password-reset:email:code`, keyed with `SESSION_SECRET` (a sign-up code can never match) |
+| codeExpiresAt | Date | 10 minutes after the code was sent |
+| attempts | Number | wrong guesses; the fifth cancels the request |
+| sendCount, lastSentAt | Number, Date | 60 s between emails, at most 5 per request |
+| expiresAt | Date | **TTL index**: deleted 60 minutes after the last email |
 
 ## Lesson (`lessons`)
 

@@ -1,6 +1,6 @@
 # Email setup (sign-up verification codes)
 
-New learners confirm their email address with a 6-digit code before their account is created. The code is sent through an SMTP server that you configure with environment variables. Nothing about email is hardcoded in the repository.
+New learners confirm their email address with a 6-digit code before their account is created, and anyone who forgets their password gets a 6-digit reset code. The code is sent through an SMTP server that you configure with environment variables. Nothing about email is hardcoded in the repository.
 
 ## How it behaves without SMTP
 
