@@ -1,0 +1,58 @@
+<%- include('../partials/header') %>
+<% const isLearner = currentUser.role === 'learner'; %>
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <h1 class="h3 mb-3">My account</h1>
+
+    <section class="bg-white border rounded-3 p-4 mb-4">
+      <dl class="row mb-0">
+        <dt class="col-sm-3 text-muted fw-normal">Name</dt>
+        <dd class="col-sm-9"><%= currentUser.name %></dd>
+        <dt class="col-sm-3 text-muted fw-normal">Email</dt>
+        <dd class="col-sm-9"><%= currentUser.email %></dd>
+        <dt class="col-sm-3 text-muted fw-normal">Role</dt>
+        <dd class="col-sm-9 text-capitalize"><%= currentUser.role %></dd>
+        <dt class="col-sm-3 text-muted fw-normal">Member since</dt>
+        <dd class="col-sm-9 mb-0"><%= formatDate(currentUser.createdAt) %></dd>
+      </dl>
+    </section>
+
+    <% if (isLearner) { %>
+      <section class="bg-white border border-danger-subtle rounded-3 p-4" aria-labelledby="delete-heading">
+        <h2 id="delete-heading" class="h5 text-danger mb-2">Delete my account</h2>
+        <p class="small mb-2">This permanently deletes:</p>
+        <ul class="small mb-3">
+          <li>your account and login,</li>
+          <li>your enrolment in <%= enrollmentCount %> <%= enrollmentCount === 1 ? 'course' : 'courses' %> and all your progress and completions.</li>
+        </ul>
+        <p class="small text-muted mb-3">
+          Comments you posted stay in the courses' permanent activity logs, shown as "Deleted user".
+          You can sign up again later with the same email, starting from scratch.
+        </p>
+
+        <% if (errors.form) { %>
+          <div class="alert alert-danger py-2" role="alert"><%= errors.form %></div>
+        <% } %>
+        <form action="/account/delete" method="post" novalidate
+              onsubmit="return confirm('Delete your account permanently? This cannot be undone.');">
+          <div class="mb-3">
+            <label for="password" class="form-label">Confirm with your password</label>
+            <input type="password" id="password" name="password" autocomplete="current-password" required
+                   class="form-control <%= errors.password ? 'is-invalid' : '' %>">
+            <% if (errors.password) { %><div class="invalid-feedback"><%= errors.password %></div><% } %>
+          </div>
+          <div class="form-check mb-3">
+            <input class="form-check-input <%= errors.confirm ? 'is-invalid' : '' %>" type="checkbox" value="yes"
+                   id="confirm" name="confirm">
+            <label class="form-check-label small" for="confirm">I understand this cannot be undone.</label>
+            <% if (errors.confirm) { %><div class="invalid-feedback"><%= errors.confirm %></div><% } %>
+          </div>
+          <button type="submit" class="btn btn-danger">Delete my account</button>
+        </form>
+      </section>
+    <% } else { %>
+      <p class="small text-muted">Instructor accounts own courses and are managed by the training team.</p>
+    <% } %>
+  </div>
+</div>
+<%- include('../partials/footer') %>

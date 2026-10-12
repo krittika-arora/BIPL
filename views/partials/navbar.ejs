@@ -21,10 +21,11 @@
           <% } %>
         </ul>
         <div class="d-flex align-items-center gap-3">
-          <span class="navbar-text small">
+          <a href="/account" class="navbar-text small text-decoration-none <%= currentPath.startsWith('/account') ? 'text-white' : '' %>"
+             title="My account">
             <%= currentUser.name %>
             <span class="badge text-bg-secondary text-capitalize ms-1"><%= currentUser.role %></span>
-          </span>
+          </a>
           <form action="/logout" method="post">
             <button class="btn btn-outline-light btn-sm" type="submit">Log out</button>
           </form>

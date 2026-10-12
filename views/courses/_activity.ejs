@@ -20,7 +20,7 @@
       <li class="list-group-item d-flex justify-content-between align-items-start gap-3">
         <div class="ms-2 me-auto">
           <div>
-            <span class="fw-semibold"><%= entry.actor ? entry.actor.name : 'Unknown user' %></span>
+            <span class="fw-semibold"><%= entry.actor ? entry.actor.name : 'Deleted user' %></span>
             <%= ACTION_LABELS[entry.action] || entry.action %>
             <% if (entry.subject) { %>&ldquo;<%= entry.subject %>&rdquo;<% } %>
             <% if (entry.actor && entry.action === 'comment') { %>
