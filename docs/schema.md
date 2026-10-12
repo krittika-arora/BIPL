@@ -19,7 +19,7 @@ MongoDB via Mongoose. All collections have `createdAt`; mutable ones also have `
 | description | String | required, max 2000 |
 | category | String | one of the fixed categories in `src/config/constants.js` |
 | status | String | `draft`, `published`, `archived`; default `draft`; indexed |
-| instructor | ObjectId → User | required; the creator; indexed |
+| instructor | ObjectId → User | required; the creator and **owner**: only this instructor can change the course or enrol learners (decision 5); indexed |
 
 ## Lesson (`lessons`)
 

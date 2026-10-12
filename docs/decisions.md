@@ -21,9 +21,24 @@ Anyone with the link can create a learner account; instructor accounts are provi
 Categories are a constant list (`src/config/constants.js`) validated on the server and by the schema enum. The brief needs a category for filtering and reporting, and with two instructors a managed category table would add screens without adding value.
 **Cost:** adding a category needs a code change and deploy.
 
-## 5. Any instructor can manage any course
+## 5. Only a course's own instructor can change it (reversed from "any instructor")
 
-The scenario describes "a couple of instructors" working as one training team, so course editing is not restricted to the creator. The creator is still stored (`Course.instructor`) for display and for the instructor filter.
+**Original decision (sessions 1–3):** the scenario describes "a couple of instructors" working as one team, so any instructor could edit any course.
+
+**Reversed after session 3.** Reviewing the permissions as a whole showed that this let one instructor quietly edit, archive, or enrol people into a colleague's course, with nothing stopping it but good manners. The activity log would record who did it, but only after the fact. Instructors are accountable for their own courses, so the rule is now:
+
+| Action on another instructor's course | Allowed |
+| --- | --- |
+| View the course and its lessons | Yes |
+| View learner progress and enrolment details | Yes |
+| Export learner progress as CSV | Yes |
+| Comment in the course's activity log | Yes |
+| Edit the course or its lessons (add, edit, reorder, remove) | No |
+| Publish, archive or restore it | No |
+| Enrol learners (single or bulk) | No |
+
+The owner is the creator, already stored as `Course.instructor`. The check lives in one place (`src/utils/ownership.js`) and is called from the service functions that change a course: `courseService.getCourseForEdit`, `lessonService.getEditableCourse` and `enrollmentService.getCourseOpenForEnrolment` / `getCourseForBulkForm`. So it applies to the edit forms as well as the form submissions, and to any future route that reuses them. A non-owner gets 403. The course page hides those buttons for them and says whose course it is.
+**Cost:** if an instructor leaves, their courses need a new owner. There is no transfer screen yet; it would be a small admin action that rewrites `Course.instructor` and logs the change.
 
 ## 6. All writes go through a service layer that also writes the activity log
 
