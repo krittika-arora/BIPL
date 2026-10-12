@@ -1,11 +1,13 @@
 const express = require('express');
 const courseController = require('../controllers/courseController');
 const enrollmentController = require('../controllers/enrollmentController');
+const commentController = require('../controllers/commentController');
 const lessonRoutes = require('./lessons');
 const { requireAuth, requireRole } = require('../middleware/auth');
 const { optionalListFile } = require('../middleware/upload');
 const { courseRules } = require('../validators/courseValidators');
 const { enrolByEmailRules } = require('../validators/enrollmentValidators');
+const { commentRules } = require('../validators/commentValidators');
 const { ROLES } = require('../config/constants');
 
 const router = express.Router();
@@ -30,6 +32,8 @@ router.post(
 );
 router.get('/:id/enrollments/bulk', instructorOnly, enrollmentController.bulkForm);
 router.get('/:id/progress.csv', instructorOnly, enrollmentController.exportProgress);
+// Both roles; who may comment on which course is decided in activityService.addComment.
+router.post('/:id/comments', commentRules, commentController.create);
 router.post(
   '/:id/enrollments/bulk',
   instructorOnly,

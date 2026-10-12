@@ -40,7 +40,9 @@ async function show(req, res) {
   const course = await courseService.getVisibleCourse(req.user, req.params.id);
   const lessons = await lessonService.listLessons(course._id);
   const isInstructor = req.user.role === ROLES.INSTRUCTOR;
-  const activity = isInstructor ? await activityService.listForCourse(course._id) : [];
+  const activity = isInstructor
+    ? await activityService.listForCourse(course._id)
+    : await activityService.listComments(course._id);
   const roster = isInstructor ? await enrollmentService.listCourseEnrollments(course._id) : [];
   const enrollment = isInstructor
     ? null

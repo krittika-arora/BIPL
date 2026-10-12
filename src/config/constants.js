@@ -52,7 +52,10 @@ const ACTIVITY_ACTIONS = Object.freeze({
   LESSON_MOVED: 'lesson_moved',
   LEARNER_ENROLLED: 'learner_enrolled',
   LEARNERS_BULK_ENROLLED: 'learners_bulk_enrolled',
+  COMMENT: 'comment',
 });
+
+const COMMENT_MAX_LENGTH = 1000;
 
 // Outcome categories reported for each address in a bulk enrolment.
 const BULK_RESULT = Object.freeze({
@@ -75,4 +78,5 @@ module.exports = {
   ACTIVITY_ACTIONS,
   BULK_RESULT,
   BULK_MAX_ADDRESSES,
+  COMMENT_MAX_LENGTH,
 };

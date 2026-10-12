@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { ACTIVITY_ACTIONS } = require('../config/constants');
+const { ACTIVITY_ACTIONS, COMMENT_MAX_LENGTH } = require('../config/constants');
 
 const IMMUTABLE_MESSAGE = 'Activity log entries are append-only and cannot be modified or deleted.';
 
@@ -11,6 +11,8 @@ const activityLogSchema = new mongoose.Schema(
     // What inside the course the action was about, e.g. a lesson title. Copied, so it
     // still reads correctly after the lesson is renamed or removed.
     subject: { type: String, trim: true, maxlength: 200 },
+    // The text of a comment (action "comment"); unused for other actions.
+    message: { type: String, trim: true, maxlength: COMMENT_MAX_LENGTH },
     // For edits: which fields changed, from what, to what.
     changes: [
       {

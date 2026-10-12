@@ -10,9 +10,10 @@
      lesson_moved: 'moved lesson',
      learner_enrolled: 'enrolled',
      learners_bulk_enrolled: 'bulk-enrolled learners:',
+     comment: 'commented',
    }; %>
 <% if (!activity.length) { %>
-  <p class="text-muted mb-0">No activity recorded yet.</p>
+  <p class="text-muted mb-0">Nothing here yet.</p>
 <% } else { %>
   <ol class="list-group list-group-numbered">
     <% activity.forEach((entry) => { %>
@@ -22,7 +23,13 @@
             <span class="fw-semibold"><%= entry.actor ? entry.actor.name : 'Unknown user' %></span>
             <%= ACTION_LABELS[entry.action] || entry.action %>
             <% if (entry.subject) { %>&ldquo;<%= entry.subject %>&rdquo;<% } %>
+            <% if (entry.actor && entry.action === 'comment') { %>
+              <span class="badge text-bg-light border text-capitalize ms-1"><%= entry.actor.role %></span>
+            <% } %>
           </div>
+          <% if (entry.message) { %>
+            <p class="mb-0 mt-1 text-pre-line"><%= entry.message %></p>
+          <% } %>
           <% if (entry.changes && entry.changes.length) { %>
             <ul class="small text-muted mb-0 ps-3">
               <% entry.changes.forEach((change) => { %>
