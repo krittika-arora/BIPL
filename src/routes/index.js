@@ -5,6 +5,7 @@ const homeController = require('../controllers/homeController');
 const { ROLES } = require('../config/constants');
 const authRoutes = require('./auth');
 const courseRoutes = require('./courses');
+const dashboardRoutes = require('./dashboard');
 
 const router = express.Router();
 
@@ -15,5 +16,6 @@ router.get('/', homeController.index);
 
 router.get('/my-learning', requireRole(ROLES.LEARNER), enrollmentController.myLearning);
 router.use('/courses', courseRoutes);
+router.use('/dashboard', dashboardRoutes);
 
 module.exports = router;

@@ -1,0 +1,49 @@
+<%- include('../partials/header') %>
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/">Dashboard</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Total learners</li>
+  </ol>
+</nav>
+<div class="d-flex flex-wrap justify-content-between align-items-baseline gap-2 mb-3">
+  <h1 class="h3 mb-0">Total learners <span class="text-muted fw-normal">(<%= total %>)</span></h1>
+  <span class="small text-muted">Every learner account, A–Z</span>
+</div>
+
+<% if (!rows.length) { %>
+  <div class="bg-white border rounded-3 p-4 text-muted">No learner accounts yet.</div>
+<% } else { %>
+  <div class="table-responsive bg-white border rounded-3">
+    <table class="table table-hover mb-0">
+      <thead class="table-light">
+        <tr>
+          <th scope="col">Learner</th>
+          <th scope="col" class="text-end">Enrolled</th>
+          <th scope="col" class="text-end">Not started</th>
+          <th scope="col" class="text-end">In progress</th>
+          <th scope="col" class="text-end">Completed</th>
+          <th scope="col">Last activity</th>
+          <th scope="col">Joined</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% rows.forEach((row) => { const s = row.stats || {}; %>
+          <tr>
+            <td>
+              <span class="fw-semibold"><%= row.name %></span>
+              <div class="small text-muted"><%= row.email %></div>
+            </td>
+            <td class="text-end"><%= s.total || 0 %></td>
+            <td class="text-end"><%= s.not_started || 0 %></td>
+            <td class="text-end"><%= s.in_progress || 0 %></td>
+            <td class="text-end"><%= s.completed || 0 %></td>
+            <td class="text-nowrap small"><%= s.lastActivityAt ? formatDate(s.lastActivityAt) : '—' %></td>
+            <td class="text-nowrap small"><%= formatDate(row.createdAt) %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+  <%- include('../partials/list-pager') %>
+<% } %>
+<%- include('../partials/footer') %>

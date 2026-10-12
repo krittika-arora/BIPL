@@ -12,16 +12,20 @@
 
 <div class="row g-3 mb-4">
   <% [
-       ['Total learners', headline.totalLearners],
-       ['Published courses', headline.publishedCourses],
-       ['Completions this month', headline.completionsThisMonth],
-       ['Learners in progress', headline.learnersInProgress],
-     ].forEach(([label, value]) => { %>
+       ['Total learners', headline.totalLearners, '/dashboard/learners'],
+       ['Published courses', headline.publishedCourses, '/courses?status=published'],
+       ['Completions this month', headline.completionsThisMonth, '/dashboard/completions'],
+       ['Learners in progress', headline.learnersInProgress, '/dashboard/in-progress'],
+     ].forEach(([label, value, href]) => { %>
     <div class="col-6 col-lg-3">
-      <div class="bg-white border rounded-3 p-3 h-100">
-        <div class="small text-muted"><%= label %></div>
+      <a href="<%= href %>" class="stat-tile d-block bg-white border rounded-3 p-3 h-100 text-decoration-none text-body"
+         aria-label="<%= label %>: <%= value %>. Show the list">
+        <div class="small text-muted d-flex justify-content-between">
+          <span><%= label %></span><span class="stat-tile-arrow" aria-hidden="true">&rarr;</span>
+        </div>
         <div class="display-6 fw-semibold"><%= value %></div>
-      </div>
+        <div class="small text-primary">View list</div>
+      </a>
     </div>
   <% }) %>
 </div>

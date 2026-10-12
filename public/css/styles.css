@@ -11,6 +11,25 @@ body {
   vertical-align: middle;
 }
 
+/* Clickable dashboard numbers */
+.stat-tile {
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.stat-tile:hover,
+.stat-tile:focus-visible {
+  border-color: var(--bs-primary) !important;
+  box-shadow: 0 0.25rem 0.75rem rgba(13, 110, 253, 0.12);
+}
+
+.stat-tile-arrow {
+  transition: transform 0.15s ease;
+}
+
+.stat-tile:hover .stat-tile-arrow {
+  transform: translateX(3px);
+}
+
 /* Public landing page */
 .hero {
   background: linear-gradient(135deg, #eef4ff 0%, #f8f9fa 60%, #eefaf3 100%);

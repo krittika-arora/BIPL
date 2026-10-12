@@ -1,0 +1,56 @@
+<%- include('../partials/header') %>
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/">Dashboard</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Learners in progress</li>
+  </ol>
+</nav>
+<div class="d-flex flex-wrap justify-content-between align-items-baseline gap-2 mb-3">
+  <h1 class="h3 mb-0">Learners in progress <span class="text-muted fw-normal">(<%= total %>)</span></h1>
+  <span class="small text-muted">Learners with at least one course underway, most recently active first</span>
+</div>
+
+<% if (!rows.length) { %>
+  <div class="bg-white border rounded-3 p-4 text-muted">Nobody has a course in progress right now.</div>
+<% } else { %>
+  <div class="table-responsive bg-white border rounded-3">
+    <table class="table mb-0 align-top">
+      <thead class="table-light">
+        <tr>
+          <th scope="col">Learner</th>
+          <th scope="col">Courses in progress</th>
+          <th scope="col">Last activity</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% rows.forEach((row) => { %>
+          <tr>
+            <td style="min-width: 12rem">
+              <span class="fw-semibold"><%= row.learner ? row.learner.name : 'Deleted user' %></span>
+              <div class="small text-muted"><%= row.learner ? row.learner.email : '' %></div>
+            </td>
+            <td style="min-width: 16rem">
+              <ul class="list-unstyled mb-0">
+                <% row.courses.forEach((item) => { %>
+                  <li class="mb-2">
+                    <a href="/courses/<%= item.id %>" class="text-decoration-none small"><%= item.title || 'Removed course' %></a>
+                    <div class="d-flex align-items-center gap-2">
+                      <div class="progress flex-grow-1" style="height: .4rem" role="progressbar"
+                           aria-label="<%= item.title %> progress" aria-valuenow="<%= item.percent %>" aria-valuemin="0" aria-valuemax="100">
+                        <div class="progress-bar" style="width: <%= item.percent %>%"></div>
+                      </div>
+                      <span class="small text-muted" style="width: 2.5rem"><%= item.percent %>%</span>
+                    </div>
+                  </li>
+                <% }) %>
+              </ul>
+            </td>
+            <td class="text-nowrap small"><%= row.lastActivityAt ? formatDateTime(row.lastActivityAt) : '—' %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+  <%- include('../partials/list-pager') %>
+<% } %>
+<%- include('../partials/footer') %>
