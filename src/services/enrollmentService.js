@@ -1,5 +1,6 @@
 const Course = require('../models/Course');
 const Enrollment = require('../models/Enrollment');
+const Lesson = require('../models/Lesson');
 const User = require('../models/User');
 const HttpError = require('../utils/httpError');
 const { ROLES, COURSE_STATUS } = require('../config/constants');
@@ -71,4 +72,33 @@ function listCourseEnrollments(courseId) {
     .lean();
 }
 
-module.exports = { findEnrollment, enrolSelf, enrolByEmail, listCourseEnrollments };
+// Every course a learner is enrolled in, with the lesson ids needed to compute progress.
+async function listLearnerEnrollments(learnerId) {
+  const enrollments = await Enrollment.find({ learner: learnerId })
+    .populate('course', 'title category status')
+    .sort({ updatedAt: -1 })
+    .lean();
+
+  const courseIds = enrollments.filter((e) => e.course).map((e) => e.course._id);
+  const lessonGroups = await Lesson.aggregate([
+    { $match: { course: { $in: courseIds } } },
+    { $group: { _id: '$course', lessonIds: { $push: '$_id' } } },
+  ]);
+  const lessonsByCourse = new Map(lessonGroups.map((g) => [g._id.toString(), g.lessonIds]));
+
+  return enrollments
+    .filter((e) => e.course)
+    .map((enrollment) => ({
+      enrollment,
+      course: enrollment.course,
+      lessonIds: lessonsByCourse.get(enrollment.course._id.toString()) || [],
+    }));
+}
+
+module.exports = {
+  findEnrollment,
+  enrolSelf,
+  enrolByEmail,
+  listCourseEnrollments,
+  listLearnerEnrollments,
+};

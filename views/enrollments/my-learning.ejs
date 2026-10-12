@@ -1,0 +1,63 @@
+<%- include('../partials/header') %>
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <h1 class="h3 mb-0">My learning</h1>
+  <a href="/courses" class="btn btn-outline-primary btn-sm">Browse courses</a>
+</div>
+
+<div class="row g-3 mb-4">
+  <% [['in_progress', 'In progress'], ['not_started', 'Not started'], ['completed', 'Completed']].forEach(([key, label]) => { %>
+    <div class="col-4">
+      <div class="bg-white border rounded-3 p-3 text-center">
+        <div class="h4 mb-0"><%= counts[key] %></div>
+        <div class="small text-muted"><%= label %></div>
+      </div>
+    </div>
+  <% }) %>
+</div>
+
+<% if (!rows.length) { %>
+  <div class="bg-white border rounded-3 p-4 text-center text-muted">
+    You are not enrolled in any courses yet. <a href="/courses">Browse the catalogue</a> to get started.
+  </div>
+<% } else { %>
+  <div class="table-responsive bg-white border rounded-3">
+    <table class="table align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th scope="col">Course</th>
+          <th scope="col">Status</th>
+          <th scope="col" style="min-width: 10rem">Progress</th>
+          <th scope="col">Last activity</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% rows.forEach(({ enrollment, course, lessonIds }) => { %>
+          <% const percent = progressPercent(enrollment, lessonIds); %>
+          <tr>
+            <td>
+              <% if (course.status === 'published') { %>
+                <a href="/courses/<%= course._id %>" class="fw-semibold text-decoration-none"><%= course.title %></a>
+              <% } else { %>
+                <span class="fw-semibold"><%= course.title %></span>
+                <span class="badge text-bg-dark ms-1">Archived</span>
+              <% } %>
+              <div class="small text-muted"><%= course.category %></div>
+            </td>
+            <td><span class="badge <%= progressBadge(enrollment.status) %>"><%= progressLabel(enrollment.status) %></span></td>
+            <td>
+              <div class="progress" role="progressbar" aria-label="Progress in <%= course.title %>"
+                   aria-valuenow="<%= percent %>" aria-valuemin="0" aria-valuemax="100">
+                <div class="progress-bar <%= percent === 100 ? 'bg-success' : '' %>" style="width: <%= percent %>%"></div>
+              </div>
+              <div class="small text-muted mt-1">
+                <%= percent %>% &middot; <%= countCompleted(enrollment, lessonIds) %>/<%= lessonIds.length %> lessons
+              </div>
+            </td>
+            <td class="text-nowrap small"><%= enrollment.lastActivityAt ? formatDate(enrollment.lastActivityAt) : '—' %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+<% } %>
+<%- include('../partials/footer') %>

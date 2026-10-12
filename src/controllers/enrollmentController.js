@@ -32,4 +32,11 @@ async function enrolByEmail(req, res) {
   res.redirect(coursePath);
 }
 
-module.exports = { enrolSelf, enrolByEmail };
+async function myLearning(req, res) {
+  const rows = await enrollmentService.listLearnerEnrollments(req.user._id);
+  const counts = { not_started: 0, in_progress: 0, completed: 0 };
+  for (const { enrollment } of rows) counts[enrollment.status] += 1;
+  res.render('enrollments/my-learning', { title: 'My learning', rows, counts });
+}
+
+module.exports = { enrolSelf, enrolByEmail, myLearning };
