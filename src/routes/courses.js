@@ -1,5 +1,6 @@
 const express = require('express');
 const courseController = require('../controllers/courseController');
+const enrollmentController = require('../controllers/enrollmentController');
 const lessonRoutes = require('./lessons');
 const { requireAuth, requireRole } = require('../middleware/auth');
 const { courseRules } = require('../validators/courseValidators');
@@ -7,6 +8,7 @@ const { ROLES } = require('../config/constants');
 
 const router = express.Router();
 const instructorOnly = requireRole(ROLES.INSTRUCTOR);
+const learnerOnly = requireRole(ROLES.LEARNER);
 
 router.use(requireAuth);
 
@@ -17,6 +19,7 @@ router.get('/:id', courseController.show);
 router.get('/:id/edit', instructorOnly, courseController.editForm);
 router.post('/:id/edit', instructorOnly, courseRules, courseController.update);
 router.post('/:id/status', instructorOnly, courseController.changeStatus);
+router.post('/:id/enroll', learnerOnly, enrollmentController.enrolSelf);
 
 router.use('/:courseId/lessons', lessonRoutes);
 

@@ -1,0 +1,21 @@
+<section class="bg-white border rounded-3 p-4 mb-4">
+  <% if (!enrollment) { %>
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div>
+        <h2 class="h5 mb-1">Ready to start?</h2>
+        <p class="text-muted mb-0">Enrol to open the lessons. Your progress is saved as you go.</p>
+      </div>
+      <form action="/courses/<%= course._id %>/enroll" method="post">
+        <button type="submit" class="btn btn-primary">Enrol in this course</button>
+      </form>
+    </div>
+  <% } else { %>
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div>
+        <h2 class="h5 mb-1">Your progress</h2>
+        <p class="text-muted small mb-0">Enrolled <%= formatDate(enrollment.createdAt) %></p>
+      </div>
+      <span class="badge <%= progressBadge(enrollment.status) %>"><%= progressLabel(enrollment.status) %></span>
+    </div>
+  <% } %>
+</section>

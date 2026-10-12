@@ -37,6 +37,10 @@
   <p class="text-pre-line mb-0"><%= course.description %></p>
 </div>
 
+<% if (!isInstructor) { %>
+  <%- include('_enrollment', { enrollment }) %>
+<% } %>
+
 <%- include('_lessons', { isInstructor }) %>
 
 <% if (isInstructor) { %>

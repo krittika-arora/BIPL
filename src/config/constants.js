@@ -17,6 +17,13 @@ const COURSE_TRANSITIONS = Object.freeze({
   archived: Object.freeze(['published']),
 });
 
+// A learner's progress through one course they are enrolled in.
+const PROGRESS_STATUS = Object.freeze({
+  NOT_STARTED: 'not_started',
+  IN_PROGRESS: 'in_progress',
+  COMPLETED: 'completed',
+});
+
 // A fixed list keeps filtering and reporting consistent; see docs/decisions.md.
 const COURSE_CATEGORIES = Object.freeze([
   'Onboarding',
@@ -35,6 +42,7 @@ module.exports = {
   ROLES,
   COURSE_STATUS,
   COURSE_TRANSITIONS,
+  PROGRESS_STATUS,
   COURSE_CATEGORIES,
   ACTIVITY_ACTIONS,
 };

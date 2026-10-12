@@ -14,8 +14,16 @@ const STATUS_BADGES = {
   archived: 'text-bg-dark',
 };
 
+const PROGRESS_LABELS = {
+  not_started: { label: 'Not started', badge: 'text-bg-light border' },
+  in_progress: { label: 'In progress', badge: 'text-bg-primary' },
+  completed: { label: 'Completed', badge: 'text-bg-success' },
+};
+
 module.exports = {
   formatDate: (value) => (value ? dateFormat.format(new Date(value)) : ''),
   formatDateTime: (value) => (value ? dateTimeFormat.format(new Date(value)) : ''),
   statusBadge: (status) => STATUS_BADGES[status] || 'text-bg-light',
+  progressLabel: (status) => (PROGRESS_LABELS[status] || { label: status }).label,
+  progressBadge: (status) => (PROGRESS_LABELS[status] || {}).badge || 'text-bg-light',
 };

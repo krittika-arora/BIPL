@@ -1,6 +1,7 @@
 const courseService = require('../services/courseService');
 const activityService = require('../services/activityService');
 const lessonService = require('../services/lessonService');
+const enrollmentService = require('../services/enrollmentService');
 const { ROLES, COURSE_CATEGORIES } = require('../config/constants');
 const HttpError = require('../utils/httpError');
 const { collectErrors } = require('../utils/validation');
@@ -17,9 +18,12 @@ async function index(req, res) {
 async function show(req, res) {
   const course = await courseService.getVisibleCourse(req.user, req.params.id);
   const lessons = await lessonService.listLessons(course._id);
-  const activity =
-    req.user.role === ROLES.INSTRUCTOR ? await activityService.listForCourse(course._id) : [];
-  res.render('courses/show', { title: course.title, course, lessons, activity });
+  const isInstructor = req.user.role === ROLES.INSTRUCTOR;
+  const activity = isInstructor ? await activityService.listForCourse(course._id) : [];
+  const enrollment = isInstructor
+    ? null
+    : await enrollmentService.findEnrollment(req.user._id, course._id).lean();
+  res.render('courses/show', { title: course.title, course, lessons, activity, enrollment });
 }
 
 function newForm(req, res) {

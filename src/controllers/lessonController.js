@@ -1,6 +1,8 @@
 const courseService = require('../services/courseService');
 const lessonService = require('../services/lessonService');
+const enrollmentService = require('../services/enrollmentService');
 const HttpError = require('../utils/httpError');
+const { ROLES } = require('../config/constants');
 const { collectErrors } = require('../utils/validation');
 
 function pickLessonFields(body) {
@@ -11,10 +13,19 @@ function coursePath(courseId) {
   return `/courses/${courseId}`;
 }
 
+// Instructors can open any lesson; learners only lessons of a course they are enrolled in.
 async function show(req, res) {
   const course = await courseService.getVisibleCourse(req.user, req.params.courseId);
+  let enrollment = null;
+  if (req.user.role === ROLES.LEARNER) {
+    enrollment = await enrollmentService.findEnrollment(req.user._id, course._id).lean();
+    if (!enrollment) {
+      req.flash('info', 'Enrol in this course to open its lessons.');
+      return res.redirect(coursePath(course._id));
+    }
+  }
   const lesson = await lessonService.getLesson(course._id, req.params.lessonId);
-  res.render('lessons/show', { title: lesson.title, course, lesson });
+  res.render('lessons/show', { title: lesson.title, course, lesson, enrollment });
 }
 
 async function newForm(req, res) {
