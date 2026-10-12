@@ -83,4 +83,14 @@ async function remove(req, res) {
   res.redirect(coursePath(req.params.courseId));
 }
 
-module.exports = { show, newForm, create, editForm, update, remove };
+async function move(req, res) {
+  try {
+    await lessonService.moveLesson(req.user, req.params.courseId, req.params.lessonId, req.body.direction);
+  } catch (err) {
+    if (!HttpError.isRuleViolation(err)) throw err;
+    req.flash('warning', err.message);
+  }
+  res.redirect(coursePath(req.params.courseId));
+}
+
+module.exports = { show, newForm, create, editForm, update, remove, move };

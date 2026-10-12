@@ -76,6 +76,31 @@ async function removeLesson(actor, courseId, lessonId) {
   return { course, lesson };
 }
 
+// Swaps a lesson with its neighbour. direction is 'up' (earlier) or 'down' (later).
+async function moveLesson(actor, courseId, lessonId, direction) {
+  if (!['up', 'down'].includes(direction)) {
+    throw new HttpError(400, 'Direction must be up or down.');
+  }
+  const course = await getEditableCourse(courseId);
+  const lesson = await getLesson(course._id, lessonId);
+
+  const neighbourPosition = direction === 'up' ? lesson.position - 1 : lesson.position + 1;
+  const neighbour = await Lesson.findOne({ course: course._id, position: neighbourPosition });
+  if (!neighbour) {
+    throw HttpError.ruleViolation(
+      direction === 'up' ? 'This lesson is already first.' : 'This lesson is already last.',
+    );
+  }
+
+  const from = lesson.position;
+  await Lesson.bulkWrite([
+    { updateOne: { filter: { _id: lesson._id }, update: { $set: { position: neighbourPosition } } } },
+    { updateOne: { filter: { _id: neighbour._id }, update: { $set: { position: from } } } },
+  ]);
+  lesson.position = neighbourPosition;
+  return { course, lesson, from, to: neighbourPosition };
+}
+
 module.exports = {
   listLessons,
   getLesson,
@@ -83,4 +108,5 @@ module.exports = {
   addLesson,
   updateLesson,
   removeLesson,
+  moveLesson,
 };

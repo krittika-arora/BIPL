@@ -14,5 +14,6 @@ router.get('/:lessonId', lessonController.show);
 router.get('/:lessonId/edit', instructorOnly, lessonController.editForm);
 router.post('/:lessonId/edit', instructorOnly, lessonRules, lessonController.update);
 router.post('/:lessonId/delete', instructorOnly, lessonController.remove);
+router.post('/:lessonId/move', instructorOnly, lessonController.move);
 
 module.exports = router;
