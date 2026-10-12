@@ -1,7 +1,9 @@
 const Course = require('../models/Course');
 const Lesson = require('../models/Lesson');
+const User = require('../models/User');
 const activityService = require('./activityService');
 const HttpError = require('../utils/httpError');
+const { buildCatalogueFilter } = require('../utils/catalogueQuery');
 const {
   ROLES,
   COURSE_STATUS,
@@ -23,11 +25,16 @@ function visibilityFilter(user) {
   return user.role === ROLES.INSTRUCTOR ? {} : { status: COURSE_STATUS.PUBLISHED };
 }
 
-function listCourses(user) {
-  return Course.find(visibilityFilter(user))
+// Search and filtering happen in the database; the browser only receives matching courses.
+function listCourses(user, params) {
+  return Course.find(buildCatalogueFilter(params, user))
     .populate('instructor', 'name')
     .sort({ createdAt: -1 })
     .lean();
+}
+
+function listInstructors() {
+  return User.find({ role: ROLES.INSTRUCTOR }).select('name').sort({ name: 1 }).lean();
 }
 
 async function getVisibleCourse(user, courseId) {
@@ -123,6 +130,7 @@ async function transitionCourse(actor, courseId, toStatus) {
 
 module.exports = {
   listCourses,
+  listInstructors,
   getVisibleCourse,
   getCourseForEdit,
   createCourse,

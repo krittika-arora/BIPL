@@ -2,8 +2,9 @@ const courseService = require('../services/courseService');
 const activityService = require('../services/activityService');
 const lessonService = require('../services/lessonService');
 const enrollmentService = require('../services/enrollmentService');
-const { ROLES, COURSE_CATEGORIES } = require('../config/constants');
+const { ROLES, COURSE_STATUS, COURSE_CATEGORIES } = require('../config/constants');
 const HttpError = require('../utils/httpError');
+const { parseCatalogueQuery } = require('../utils/catalogueQuery');
 const { collectErrors } = require('../utils/validation');
 
 function pickCourseFields(body) {
@@ -11,8 +12,21 @@ function pickCourseFields(body) {
 }
 
 async function index(req, res) {
-  const courses = await courseService.listCourses(req.user);
-  res.render('courses/index', { title: 'Courses', courses });
+  const params = parseCatalogueQuery(req.query, req.user);
+  const [courses, instructors] = await Promise.all([
+    courseService.listCourses(req.user, params),
+    courseService.listInstructors(),
+  ]);
+  const filtered = Boolean(params.q || params.category || params.status || params.instructor);
+  res.render('courses/index', {
+    title: 'Courses',
+    courses,
+    params,
+    filtered,
+    instructors,
+    categories: COURSE_CATEGORIES,
+    statuses: Object.values(COURSE_STATUS),
+  });
 }
 
 async function show(req, res) {
