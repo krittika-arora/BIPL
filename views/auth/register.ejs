@@ -4,7 +4,11 @@
     <div class="card shadow-sm">
       <div class="card-body p-4">
         <h1 class="h4 mb-1">Create account</h1>
-        <p class="text-muted small mb-3">New accounts are learner accounts. Instructor access is set up by the training team.</p>
+        <p class="text-muted small mb-3">New accounts are learner accounts. Instructor access is set up by the training team.
+          We will email you a code to confirm your address.</p>
+        <% if (errors.form) { %>
+          <div class="alert alert-danger py-2" role="alert"><%= errors.form %></div>
+        <% } %>
         <form action="/register" method="post" novalidate>
           <% if (values.next) { %><input type="hidden" name="next" value="<%= values.next %>"><% } %>
           <div class="mb-3">
@@ -35,7 +39,7 @@
                    class="form-control <%= errors.confirmPassword ? 'is-invalid' : '' %>">
             <% if (errors.confirmPassword) { %><div class="invalid-feedback"><%= errors.confirmPassword %></div><% } %>
           </div>
-          <button type="submit" class="btn btn-primary w-100">Create account</button>
+          <button type="submit" class="btn btn-primary w-100">Continue</button>
         </form>
       </div>
     </div>

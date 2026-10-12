@@ -36,4 +36,11 @@ const loginRules = [
   body('password').notEmpty().withMessage('Password is required.'),
 ];
 
-module.exports = { registerRules, loginRules };
+const verifyCodeRules = [
+  body('code')
+    .customSanitizer((value) => String(value || '').replace(/\s+/g, ''))
+    .matches(/^\d{6}$/)
+    .withMessage('Enter the 6-digit code from the email.'),
+];
+
+module.exports = { registerRules, loginRules, verifyCodeRules };
