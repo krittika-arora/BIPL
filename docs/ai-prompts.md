@@ -118,7 +118,7 @@ I asked for a forgot-password option on the login page.
 **What was checked and corrected:**
 
 - **A mistake that used my real Gmail.** By this point my `.env` contained my Gmail SMTP settings. Two test steps ran without overriding them: re-registering a deleted demo learner in the account-deletion test, and a direct call to the new reset email function. Both sent real emails from my account to addresses that cannot receive mail (`arjun.learner@example.com`, `a@b.c`), which produced bounce notices and nothing more. The assistant noticed it from the `delivered: true` result and told me. Since then every test loads a fixed test environment that points email at a local fake SMTP server and uses a separate test database.
-- **A generated line break broke the email module.** The new reset email's text was joined with a literal line break instead of `'\\n'`, a syntax error caught when the module failed to load. Fixed, along with some over-long lines in the mail code.
+- **A generated line break broke the email module.** The new reset email's text was joined with a literal line break instead of `'\n'`, a syntax error caught when the module failed to load. Fixed, along with some over-long lines in the mail code.
 - **16 scenarios passed:**
   - the same page and no email for an unknown address, and exactly one email for a known one;
   - a wrong code shows the attempts left, and a weak or mismatched new password is refused without using up an attempt;
