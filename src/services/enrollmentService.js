@@ -5,6 +5,7 @@ const User = require('../models/User');
 const activityService = require('./activityService');
 const HttpError = require('../utils/httpError');
 const { isValidEmail } = require('../utils/emailList');
+const { countCompleted, progressPercent } = require('../utils/progress');
 const {
   ROLES,
   COURSE_STATUS,
@@ -166,6 +167,46 @@ function listCourseEnrollments(courseId) {
     .lean();
 }
 
+// One row per enrolled learner, for the instructor's CSV export.
+async function buildProgressReport(courseId) {
+  const course = await Course.findById(courseId).lean();
+  if (!course) throw new HttpError(404, 'Course not found.');
+
+  const [enrollments, lessonIds] = await Promise.all([
+    Enrollment.find({ course: course._id })
+      .populate('learner', 'name email')
+      .sort({ createdAt: 1 })
+      .lean(),
+    Lesson.find({ course: course._id }).distinct('_id'),
+  ]);
+
+  const headers = [
+    'Learner',
+    'Email',
+    'Status',
+    'Lessons completed',
+    'Total lessons',
+    'Progress %',
+    'Enrolled at',
+    'Last activity',
+    'Completed at',
+  ];
+  const rows = enrollments
+    .filter((e) => e.learner)
+    .map((e) => [
+      e.learner.name,
+      e.learner.email,
+      e.status,
+      countCompleted(e, lessonIds),
+      lessonIds.length,
+      progressPercent(e, lessonIds),
+      e.createdAt,
+      e.lastActivityAt,
+      e.completedAt,
+    ]);
+  return { course, headers, rows };
+}
+
 // Every course a learner is enrolled in, with the lesson ids needed to compute progress.
 async function listLearnerEnrollments(learnerId) {
   const enrollments = await Enrollment.find({ learner: learnerId })
@@ -196,6 +237,7 @@ module.exports = {
   bulkEnrol,
   getCourseOpenForEnrolment,
   getCourseForBulkForm,
+  buildProgressReport,
   listCourseEnrollments,
   listLearnerEnrollments,
 };

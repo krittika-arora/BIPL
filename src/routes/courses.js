@@ -29,6 +29,7 @@ router.post(
   enrollmentController.enrolByEmail,
 );
 router.get('/:id/enrollments/bulk', instructorOnly, enrollmentController.bulkForm);
+router.get('/:id/progress.csv', instructorOnly, enrollmentController.exportProgress);
 router.post(
   '/:id/enrollments/bulk',
   instructorOnly,

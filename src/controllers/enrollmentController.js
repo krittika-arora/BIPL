@@ -2,6 +2,7 @@ const enrollmentService = require('../services/enrollmentService');
 const HttpError = require('../utils/httpError');
 const { collectErrors } = require('../utils/validation');
 const { addressesFromText, addressesFromFile, normaliseAddresses } = require('../utils/emailList');
+const { toCsv, slugify } = require('../utils/csv');
 
 async function enrolSelf(req, res) {
   try {
@@ -61,6 +62,17 @@ async function bulkEnrol(req, res) {
   }
 }
 
+async function exportProgress(req, res) {
+  const { course, headers, rows } = await enrollmentService.buildProgressReport(req.params.id);
+  const date = new Date().toISOString().slice(0, 10);
+  res.set({
+    'Content-Type': 'text/csv; charset=utf-8',
+    'Content-Disposition': `attachment; filename="${slugify(course.title)}-progress-${date}.csv"`,
+    'Cache-Control': 'no-store',
+  });
+  res.send(toCsv(headers, rows));
+}
+
 async function myLearning(req, res) {
   const rows = await enrollmentService.listLearnerEnrollments(req.user._id);
   const counts = { not_started: 0, in_progress: 0, completed: 0 };
@@ -68,4 +80,4 @@ async function myLearning(req, res) {
   res.render('enrollments/my-learning', { title: 'My learning', rows, counts });
 }
 
-module.exports = { enrolSelf, enrolByEmail, bulkForm, bulkEnrol, myLearning };
+module.exports = { enrolSelf, enrolByEmail, bulkForm, bulkEnrol, exportProgress, myLearning };
