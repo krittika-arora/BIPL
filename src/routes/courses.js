@@ -14,8 +14,8 @@ const router = express.Router();
 const instructorOnly = requireRole(ROLES.INSTRUCTOR);
 const learnerOnly = requireRole(ROLES.LEARNER);
 
-router.use(requireAuth);
-
+// Public: the catalogue and course pages (published courses only for visitors and learners).
+// Everything else needs a signed-in user; requireRole sends visitors to the login page.
 router.get('/', courseController.index);
 router.get('/new', instructorOnly, courseController.newForm);
 router.post('/', instructorOnly, courseRules, courseController.create);
@@ -33,7 +33,7 @@ router.post(
 router.get('/:id/enrollments/bulk', instructorOnly, enrollmentController.bulkForm);
 router.get('/:id/progress.csv', instructorOnly, enrollmentController.exportProgress);
 // Both roles; who may comment on which course is decided in activityService.addComment.
-router.post('/:id/comments', commentRules, commentController.create);
+router.post('/:id/comments', requireAuth, commentRules, commentController.create);
 router.post(
   '/:id/enrollments/bulk',
   instructorOnly,
@@ -41,6 +41,7 @@ router.post(
   enrollmentController.bulkEnrol,
 );
 
-router.use('/:courseId/lessons', lessonRoutes);
+// Lesson content is never public.
+router.use('/:courseId/lessons', requireAuth, lessonRoutes);
 
 module.exports = router;

@@ -39,14 +39,18 @@ async function index(req, res) {
 async function show(req, res) {
   const course = await courseService.getVisibleCourse(req.user, req.params.id);
   const lessons = await lessonService.listLessons(course._id);
-  const isInstructor = req.user.role === ROLES.INSTRUCTOR;
-  const activity = isInstructor
-    ? await activityService.listForCourse(course._id)
-    : await activityService.listComments(course._id);
+  // Visitors (no req.user) get the public view: description and lesson titles only.
+  const isInstructor = Boolean(req.user) && req.user.role === ROLES.INSTRUCTOR;
+  const isLearner = Boolean(req.user) && req.user.role === ROLES.LEARNER;
+
+  let activity = [];
+  if (isInstructor) activity = await activityService.listForCourse(course._id);
+  else if (isLearner) activity = await activityService.listComments(course._id);
+
   const roster = isInstructor ? await enrollmentService.listCourseEnrollments(course._id) : [];
-  const enrollment = isInstructor
-    ? null
-    : await enrollmentService.findEnrollment(req.user._id, course._id).lean();
+  const enrollment = isLearner
+    ? await enrollmentService.findEnrollment(req.user._id, course._id).lean()
+    : null;
   res.render('courses/show', {
     title: course.title,
     course,

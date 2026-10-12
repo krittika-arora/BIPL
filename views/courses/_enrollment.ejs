@@ -1,5 +1,16 @@
 <section class="bg-white border rounded-3 p-4 mb-4">
-  <% if (!enrollment) { %>
+  <% if (!locals.currentUser) { %>
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div>
+        <h2 class="h5 mb-1">Want to take this course?</h2>
+        <p class="text-muted mb-0">Log in or create a free learner account to enrol and track your progress.</p>
+      </div>
+      <div class="d-flex gap-2">
+        <a href="/login" class="btn btn-primary">Log in to enrol</a>
+        <a href="/register" class="btn btn-outline-primary">Create account</a>
+      </div>
+    </div>
+  <% } else if (!enrollment) { %>
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
       <div>
         <h2 class="h5 mb-1">Ready to start?</h2>

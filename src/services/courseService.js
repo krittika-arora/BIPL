@@ -22,9 +22,9 @@ const TRANSITION_ACTIONS = {
   archived: { published: ACTIVITY_ACTIONS.RESTORED },
 };
 
-// Learners only ever see published courses; instructors see everything.
+// Visitors (no user) and learners only ever see published courses; instructors see everything.
 function visibilityFilter(user) {
-  return user.role === ROLES.INSTRUCTOR ? {} : { status: COURSE_STATUS.PUBLISHED };
+  return user && user.role === ROLES.INSTRUCTOR ? {} : { status: COURSE_STATUS.PUBLISHED };
 }
 
 const enrollmentCountStages = [
@@ -93,7 +93,7 @@ function listInstructors() {
 
 async function getVisibleCourse(user, courseId) {
   const course = await Course.findOne({ _id: courseId, ...visibilityFilter(user) })
-    .populate('instructor', 'name email')
+    .populate('instructor', 'name')
     .lean();
   if (!course) throw new HttpError(404, 'Course not found.');
   return course;

@@ -1,5 +1,5 @@
 <%- include('../partials/header') %>
-<% const isInstructor = currentUser.role === 'instructor'; %>
+<% const isInstructor = Boolean(locals.currentUser) && currentUser.role === 'instructor'; %>
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h1 class="h3 mb-0">Courses</h1>
   <% if (isInstructor) { %>

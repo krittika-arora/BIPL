@@ -21,10 +21,10 @@ function single(value) {
   return typeof value === 'string' ? value : Array.isArray(value) ? single(value[0]) : '';
 }
 
-// Turns raw query-string values into a whitelisted set of filters.
+// Turns raw query-string values into a whitelisted set of filters. `user` is null for visitors.
 // Anything unknown or malformed is dropped rather than passed to the database.
 function parseCatalogueQuery(query, user) {
-  const isInstructor = user.role === ROLES.INSTRUCTOR;
+  const isInstructor = Boolean(user) && user.role === ROLES.INSTRUCTOR;
 
   const q = single(query.q).trim().slice(0, MAX_SEARCH_LENGTH);
   const category = COURSE_CATEGORIES.includes(single(query.category)) ? single(query.category) : '';
@@ -40,10 +40,10 @@ function parseCatalogueQuery(query, user) {
   return { q, category, status, instructor, sort, dir, page };
 }
 
-// Builds the MongoDB filter for the catalogue. Learners only ever get published courses.
+// Builds the MongoDB filter for the catalogue. Visitors and learners only ever get published courses.
 function buildCatalogueFilter(params, user) {
   const filter = {};
-  if (user.role !== ROLES.INSTRUCTOR) filter.status = COURSE_STATUS.PUBLISHED;
+  if (!user || user.role !== ROLES.INSTRUCTOR) filter.status = COURSE_STATUS.PUBLISHED;
   else if (params.status) filter.status = params.status;
 
   if (params.category) filter.category = params.category;
