@@ -26,6 +26,15 @@ The work is split into four sessions. Each session ends with the app running and
 - Progress `not_started → in_progress → completed`, driven by lesson completion; "My learning" page.
 - Every lesson change and lifecycle transition written to the activity log.
 
+### Session 2 notes: what changed against the plan
+
+Built as planned, plus some rules that came up while building rather than from the brief:
+
+- Lessons of an archived course are frozen, and the last lesson of a published course cannot be removed (otherwise a published course could end up empty).
+- Removing a lesson re-evaluates learners in progress, so nobody gets stuck one lesson short of a lesson that no longer exists.
+- Opening lesson content requires enrolment; the course page shows titles to everyone who can see the course.
+- The course page gained a learner roster (status, %, last activity) for instructors, which the brief's "who has finished, who is partway" needs anyway.
+
 ## Session 3: finding, bulk work and reporting
 
 - Course catalogue with server-side text search, category/status/instructor filters, sorting (title, created date, enrollment count) and pagination with a total count.
