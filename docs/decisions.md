@@ -162,3 +162,18 @@ How the code is protected:
 **SMTP configuration** comes only from environment variables (`docs/email-setup.md`). Development without `SMTP_HOST` prints emails to the terminal so the app works with no mail account. Production refuses to start without it, so sign-up cannot silently break. `npm run mail:test` checks the settings on their own. This added one dependency, `nodemailer`, the standard SMTP client for Node.
 
 **Accepted trade-off:** "An account with this email already exists" tells a visitor that an address is registered (account enumeration). It was already true before verification and is common practice for internal tools; a stricter version would always say "check your email" and send a "you already have an account" email instead.
+
+## 26. Dashboard numbers open the list behind them, using the same filter
+
+Each headline number links to the records it counts:
+
+| Number | Opens |
+| --- | --- |
+| Total learners | `/dashboard/learners`: every learner, A–Z, with their enrolments by status and last activity |
+| Published courses | `/courses?status=published`: the existing catalogue, already searchable, sortable and paginated |
+| Completions this month | `/dashboard/completions`: each completion since the 1st (UTC): learner, course, enrolled and completed dates |
+| Learners in progress | `/dashboard/in-progress`: each learner with a course underway, which courses, their % and last activity |
+
+The filters behind the numbers (`learnerFilter`, `publishedFilter`, `completionsThisMonthFilter`, `inProgressFilter` in `dashboardService`) are shared by the counts and the lists. A list can therefore never disagree with its tile, for example by using a different month boundary. Each list is one MongoDB aggregation with `$facet` (a page of 20 plus the total) and a `$lookup` only for the rows on the page. The in-progress list computes % with the same rule as the rest of the app: only lessons that still exist count.
+
+The pages show learner names and emails, so they are instructor-only (learners get 403; visitors are sent to log in). Instructors can see every course's learners here, in line with decision 5: viewing progress is allowed, and only changes are limited to a course's owner.

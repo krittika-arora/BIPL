@@ -84,3 +84,13 @@ I asked for sign-ups to be verified with a one-time code sent by email, configur
   - the new account is a learner who can log in with their password;
   - a duplicate email is refused, the fifth wrong code cancels the sign-up, the post-login return path is kept, and the send limit holds even when the form is restarted;
   - an SMTP outage shows a clear message and allows an immediate retry.
+
+### Follow-up: clickable dashboard numbers (my requirement, implemented with the assistant)
+
+I asked for the four headline numbers on the instructor dashboard to be clickable and show the list behind each one.
+
+**What was checked and corrected:**
+
+- **Two of the four lists failed on the first run.** The helper that joins in learner names and course titles had lost the `$` in front of the field name while being written, so MongoDB received the plain word `learner` instead of the field path `$learner` and rejected the query. The test run surfaced the error; the helper now builds the path as `'$' + field`.
+- **A grouping bug caught before it shipped.** The in-progress list first replaced the learner id it groups by with the learner's details, which would have merged two deleted learners into one row. Changed to keep the id and put the details in a separate field.
+- **Numbers verified against the database:** every list total equals its tile (12, 12, 4, 10 on the seed data). Neha's row (7 enrolled: 3 / 2 / 2) matches a direct count. All 24 in-progress percentages match an independent calculation with the app's own progress function. Pagination was checked with 42 learners (20 + 20 + 2, page 99 redirects to page 3). Learners get 403 and visitors are sent to log in. Tests ran on a separate port and test database, not on my running app.
