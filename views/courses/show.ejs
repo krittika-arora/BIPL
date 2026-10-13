@@ -35,6 +35,19 @@
             <input type="hidden" name="to" value="<%= NEXT_ACTION.to %>">
             <button type="submit" class="btn btn-sm <%= NEXT_ACTION.style %>"><%= NEXT_ACTION.label %></button>
           </form>
+          <% if (!roster.length) { %>
+            <form action="/courses/<%= course._id %>/delete" method="post"
+                  onsubmit="return confirm('Delete this course and its <%= lessons.length %> lesson(s) permanently? This cannot be undone.');">
+              <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
+              <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+            </form>
+          <% } else { %>
+            <%# Disabled buttons do not show tooltips, so the explanation sits on a wrapper. %>
+            <span class="d-inline-block" tabindex="0"
+                  title="Can't delete: <%= roster.length %> <%= roster.length === 1 ? 'learner has' : 'learners have' %> enrolled. Archive the course instead to keep their records.">
+              <button type="button" class="btn btn-sm btn-outline-danger" disabled>Delete</button>
+            </span>
+          <% } %>
         <% } %>
       <% } %>
     </div>
@@ -56,29 +69,6 @@
 
 <% if (isInstructor) { %>
   <%- include('_roster', { roster, isOwner }) %>
-<% } %>
-
-<% if (isOwner) { %>
-  <section class="bg-white border border-danger-subtle rounded-3 p-4 mb-4" aria-labelledby="delete-course-heading">
-    <h2 id="delete-course-heading" class="h6 text-danger mb-2">Delete this course</h2>
-    <% if (roster.length) { %>
-      <p class="small text-muted mb-0">
-        This course can't be deleted: <%= roster.length %> <%= roster.length === 1 ? 'learner has' : 'learners have' %>
-        enrolled, and deleting it would erase their progress records.
-        <% if (course.status === 'published') { %>Archive it instead to take it out of the catalogue while keeping everyone's history.<% } %>
-      </p>
-    <% } else { %>
-      <p class="small text-muted mb-3">
-        Permanently deletes the course and its <%= lessons.length %> <%= lessons.length === 1 ? 'lesson' : 'lessons' %>.
-        Nobody has enrolled, so no learner records are affected. The deletion is kept in the activity log.
-      </p>
-      <form action="/courses/<%= course._id %>/delete" method="post"
-            onsubmit="return confirm('Delete this course and its lessons permanently? This cannot be undone.');">
-        <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
-        <button type="submit" class="btn btn-outline-danger btn-sm">Delete course</button>
-      </form>
-    <% } %>
-  </section>
 <% } %>
 
 <% const canComment = isInstructor || Boolean(enrollment); %>

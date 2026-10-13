@@ -224,7 +224,7 @@ The suite was checked for false confidence: temporarily removing the publish gua
 
 ## 32. Owners can delete a course, but only if nobody has ever enrolled
 
-The course page shows the owner a **Delete this course** section. It permanently removes the course and its lessons, and is refused in two cases:
+The owner sees a **Delete** button next to Publish / Archive / Restore on the course page. It permanently removes the course and its lessons after a confirmation. If anyone has enrolled, the button is shown disabled, with a tooltip saying why and pointing to Archive. The server enforces the rules either way, refusing in two cases:
 
 - **Not the owner:** another instructor gets 403, and so does a learner. The check is the same `getCourseForEdit` ownership check used for every other change (decision 5).
 - **Anyone has enrolled:** deleting would erase those learners' progress and completion records. Archiving exists precisely to take a course out of the catalogue while keeping that history, so the message points there instead.
