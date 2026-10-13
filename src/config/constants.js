@@ -53,6 +53,7 @@ const ACTIVITY_ACTIONS = Object.freeze({
   LEARNER_ENROLLED: 'learner_enrolled',
   LEARNERS_BULK_ENROLLED: 'learners_bulk_enrolled',
   COMMENT: 'comment',
+  ALERT_DISMISSED: 'alert_dismissed',
 });
 
 const COMMENT_MAX_LENGTH = 1000;

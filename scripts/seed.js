@@ -7,6 +7,9 @@ const Course = require('../src/models/Course');
 const Lesson = require('../src/models/Lesson');
 const Enrollment = require('../src/models/Enrollment');
 const ActivityLog = require('../src/models/ActivityLog');
+const AlertDismissal = require('../src/models/AlertDismissal');
+const PendingSignup = require('../src/models/PendingSignup');
+const PasswordReset = require('../src/models/PasswordReset');
 const courseService = require('../src/services/courseService');
 const lessonService = require('../src/services/lessonService');
 const enrollmentService = require('../src/services/enrollmentService');
@@ -210,7 +213,9 @@ async function seed() {
   // A full reset is the one place the activity log is cleared, by dropping the database.
   await mongoose.connection.dropDatabase();
   await Promise.all(
-    [User, Course, Lesson, Enrollment, ActivityLog].map((model) => model.syncIndexes()),
+    [User, Course, Lesson, Enrollment, ActivityLog, AlertDismissal, PendingSignup, PasswordReset].map(
+      (model) => model.syncIndexes(),
+    ),
   );
 
   const instructors = await createUsers(INSTRUCTORS, ROLES.INSTRUCTOR, INSTRUCTOR_PASSWORD);

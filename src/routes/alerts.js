@@ -8,5 +8,6 @@ const router = express.Router();
 router.use(requireRole(ROLES.INSTRUCTOR));
 
 router.get('/', alertController.index);
+router.post('/:enrollmentId/dismiss', alertController.dismiss);
 
 module.exports = router;

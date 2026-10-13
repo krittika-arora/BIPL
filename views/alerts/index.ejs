@@ -5,6 +5,7 @@
 <p class="text-muted small mb-3">
   Learners whose progress on one of your published courses is In progress, but who have made no
   further progress for more than <%= inactivityDays %> days. Longest quiet first.
+  A dismissed alert comes back if the learner makes progress and then goes quiet again.
 </p>
 
 <% if (!rows.length) { %>
@@ -42,7 +43,11 @@
             </td>
             <td class="text-nowrap small"><%= formatDate(row.lastActivityAt) %></td>
             <td class="text-end"><span class="badge text-bg-warning"><%= row.daysInactive %></span></td>
-            <td class="text-end"></td>
+            <td class="text-end">
+              <form action="/alerts/<%= row.enrollmentId %>/dismiss<%= page > 1 ? `?page=${page}` : '' %>" method="post">
+                <button type="submit" class="btn btn-outline-secondary btn-sm">Dismiss</button>
+              </form>
+            </td>
           </tr>
         <% }) %>
       </tbody>

@@ -1,8 +1,17 @@
+const AlertDismissal = require('../models/AlertDismissal');
 const Course = require('../models/Course');
 const Enrollment = require('../models/Enrollment');
 const Lesson = require('../models/Lesson');
 const User = require('../models/User');
-const { COURSE_STATUS, PROGRESS_STATUS, INACTIVITY_DAYS } = require('../config/constants');
+const activityService = require('./activityService');
+const HttpError = require('../utils/httpError');
+const { assertCourseOwner } = require('../utils/ownership');
+const {
+  COURSE_STATUS,
+  PROGRESS_STATUS,
+  INACTIVITY_DAYS,
+  ACTIVITY_ACTIONS,
+} = require('../config/constants');
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const PAGE_SIZE = 20;
@@ -36,6 +45,28 @@ function openAlertStages(instructorId, now) {
       },
     },
     { $unwind: '$enrollment' },
+    // Hidden only by a dismissal made at exactly the current lastActivityAt.
+    {
+      $lookup: {
+        from: AlertDismissal.collection.name,
+        let: { enrollmentId: '$enrollment._id', activityAt: '$enrollment.lastActivityAt' },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ['$enrollment', '$$enrollmentId'] },
+                  { $eq: ['$activityAtDismissal', '$$activityAt'] },
+                ],
+              },
+            },
+          },
+          { $limit: 1 },
+        ],
+        as: 'dismissal',
+      },
+    },
+    { $match: { dismissal: { $size: 0 } } },
   ];
 }
 
@@ -93,4 +124,46 @@ async function listOpenAlerts(instructorId, page = 1, now = new Date()) {
   return { rows, total, page, pageSize: PAGE_SIZE, pages };
 }
 
-module.exports = { countOpenAlerts, listOpenAlerts, inactivityCutoff };
+// Dismisses the alert for one enrolment, recording the lastActivityAt it applies to.
+// Only the course's owner can do this, and only while the alert is actually open.
+async function dismissAlert(actor, enrollmentId, now = new Date()) {
+  const enrollment = await Enrollment.findById(enrollmentId).populate('learner', 'name').lean();
+  if (!enrollment) throw new HttpError(404, 'Alert not found.');
+  const course = await Course.findById(enrollment.course).lean();
+  if (!course) throw new HttpError(404, 'Alert not found.');
+  assertCourseOwner(actor, course);
+
+  const isOpen =
+    course.status === COURSE_STATUS.PUBLISHED &&
+    enrollment.status === PROGRESS_STATUS.IN_PROGRESS &&
+    enrollment.lastActivityAt &&
+    enrollment.lastActivityAt < inactivityCutoff(now);
+  if (!isOpen) {
+    throw HttpError.ruleViolation(
+      'This learner is no longer inactive, so there is nothing to dismiss.',
+    );
+  }
+
+  try {
+    await AlertDismissal.create({
+      enrollment: enrollment._id,
+      course: course._id,
+      learner: enrollment.learner._id,
+      dismissedBy: actor._id,
+      activityAtDismissal: enrollment.lastActivityAt,
+    });
+  } catch (err) {
+    if (err.code !== 11000) throw err;
+    throw HttpError.ruleViolation('This alert has already been dismissed.');
+  }
+
+  await activityService.record({
+    course: course._id,
+    actor: actor._id,
+    action: ACTIVITY_ACTIONS.ALERT_DISMISSED,
+    subject: enrollment.learner.name,
+  });
+  return { learnerName: enrollment.learner.name, course };
+}
+
+module.exports = { countOpenAlerts, listOpenAlerts, dismissAlert, inactivityCutoff };
