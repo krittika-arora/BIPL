@@ -1,69 +1,40 @@
-# Build plan
+# Plan
 
-The work is split into four sessions. Each session ends with the app running and committed, so any session's last commit is a usable version.
+## How did you break the work into sessions?
 
-| Session | Focus | Goals covered | Estimate | Actual |
-| --- | --- | --- | --- | --- |
-| 1 | Setup, auth and roles, courses, activity log, seed | 1, 2 (partial), 9 (partial) | 5h | |
-| 2 | Lessons, course lifecycle, enrollment, progress | 2, 3, 4, 5, 9 | 6h | |
-| 3 | Catalogue search, bulk enrollment, CSV export, dashboard, comments | 6, 7, 8, 9 | 6h | |
-| 4 | Inactivity alerts, tests, security pass, deployment, docs | 10, plus hardening | 5h | |
+- Four days, each ending with the app running and every change committed.
+- **Day 1:** setup, login and roles, creating and editing courses, activity log, demo data.
+- **Day 2:** lessons, publish/archive rules, enrolment, learner progress, "My learning".
+- **Day 3:** course search and filters, bulk enrolment, CSV export, dashboard, comments.
+- **Day 4:** inactivity alerts, security (CSRF), automated tests, documentation
+- **Day 5:** Final changes, Deployement
 
-## Session 1: foundation
+## What order did you build in, and why that order?
 
-- Express 5 + EJS + Bootstrap layout, MongoDB connection, config from environment variables only.
-- Email/password sign-in with sessions stored in MongoDB; self-registration creates learners only.
-- `requireRole` middleware on every instructor route.
-- Course model; instructors create and edit courses (start as draft).
-- Append-only activity log written by the course service on every change.
-- Seed script with two instructors, six learners and six courses.
+- **Login and roles first:** every other feature depends on knowing who the user is and what they may do.
+- **Courses and lessons next:** enrolment and progress need content to exist.
+- **Enrolment and progress after that:** the dashboard, CSV export and alerts all report on progress data.
+- **Reporting features later:** search, dashboard and export only make sense once there is data to show.
+- **Alerts, security and tests last:** they cover the whole app, so they came once the features were stable.
 
-## Session 2: course content and learner progress
+## What did you estimate versus what it actually took?
 
-- Lessons: add, edit, remove, reorder; course page lists lessons in order.
-- Course lifecycle `draft → published → archived` (and restore) in one service function that rejects illegal moves and refuses to publish a course with no lessons.
-- Enrollment: learners self-enrol in published courses; instructors enrol a single learner.
-- Progress `not_started → in_progress → completed`, driven by lesson completion; "My learning" page.
-- Every lesson change and lifecycle transition written to the activity log.
+| Session                                     | Estimate | Actual       |
+|---------------------------------------------|----------|--------------|
+| 1. Foundation                               | 4h       |              |
+| 2. Lessons, lifecycle, enrolment, progress  | 4h       |              |
+| 3. Search, bulk enrolment, CSV, dashboard   | 4h       |              |
+| 4. Alerts, security, tests, docs            | 4h       |              |
+| **Total**                                   | **16h**  | **~13–14h**  |
 
-### Session 2 notes: what changed against the plan
+- The core features took less time than estimated.
+- Extra features added along the way (email verification, forgot password, course ownership, public landing page, clickable dashboard) weren't in the estimate.
+- The inactivity alert rule (an alert coming back after a learner goes quiet again) took the most thought.
 
-Built as planned, plus some rules that came up while building rather than from the brief:
+## What did you cut when you ran short?
 
-- Lessons of an archived course are frozen, and the last lesson of a published course cannot be removed (otherwise a published course could end up empty).
-- Removing a lesson re-evaluates learners in progress, so nobody gets stuck one lesson short of a lesson that no longer exists.
-- Opening lesson content requires enrolment; the course page shows titles to everyone who can see the course.
-- The course page gained a learner roster (status, %, last activity) for instructors, which the brief's "who has finished, who is partway" needs anyway.
-
-## Session 3: finding, bulk work and reporting
-
-- Course catalogue with server-side text search, category/status/instructor filters, sorting (title, created date, enrollment count) and pagination with a total count.
-- Bulk enrollment from pasted or uploaded email lists with a per-address result.
-- Per-course progress CSV export.
-- Dashboard: headline numbers, enrollments by course and by progress state, 8-week completions chart.
-- Comments on the course activity log.
-
-### Session 3 notes: what changed against the plan
-
-- Added one dependency, `multer`, for the file upload in bulk enrolment (memory storage, 100 KB cap, .csv/.txt only). Pasting addresses works without it.
-- Instructor enrolments (single and bulk) are now written to the activity log too, so the log answers "who enrolled whom".
-- The seed grew to 14 courses and 12 learners, so the catalogue has a second page and the dashboard has enough completions to chart. Its history is spread over the past weeks by a separate seed-only step (decision 22).
-- The chart could only be checked through its data and table fallback here, not by eye in a browser.
-
-## Session 4: alerts, quality and delivery
-
-- Inactivity alerts (In Progress with no progress for more than 14 days), dismiss per learner and course, reappear after renewed activity followed by another quiet period; count badge in the navbar.
-- Automated tests for the rules that matter most (roles, transitions, publish guard, bulk report, alert reappearance).
-- CSRF protection on forms, final validation pass.
-- Deployment (Render + MongoDB Atlas) with seeded demo data; docs and checklist finalised.
-
-### Session 4 notes: what changed against the plan
-
-- Alerts are scoped to the instructor who owns each course, to match the ownership rule added after session 3 (decision 5).
-- Security went beyond CSRF: protective headers, a full git-history scan for secrets (clean), and tests that check error pages never expose internals.
-- Deployment is written up (`docs/deployment.md`) but deliberately not done yet.
-- Added after the original plan, at my request: public landing page and catalogue, email verification at sign-up, forgot password, account deletion, course ownership, and clickable dashboard numbers.
-
-## Cut if time runs short
-
-Listed up front so scope decisions are deliberate: rich-text lesson content (plain text is enough), email notifications, file attachments on lessons, an admin screen for promoting users to instructor.
+- Rich-text lesson content: plain text is enough for now.
+- File attachments on lessons.
+- An admin screen for creating instructor accounts: they come from the seed instead.
+- Email notifications for inactive learners.
+- Course ratings, reviews and completion certificates.

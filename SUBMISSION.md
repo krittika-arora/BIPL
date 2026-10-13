@@ -1,79 +1,83 @@
-# Submission: CourseTrack
+# Submission
 
-**Assignment:** Internal training: courses, lessons and learner progress tracking
-**Repository:** https://github.com/krittika-arora/BIPL
-**Live application:** not deployed yet. The app is complete and tested; deployment steps for Render + MongoDB Atlas are in [docs/deployment.md](docs/deployment.md).
+## Links
 
-## Without logging in
+| Item              | Link                                     |
+|-------------------|------------------------------------------|
+| GitHub repository | https://github.com/krittika-arora/BIPL   |
+| Live application  |                                          |
 
-Open the app without signing in to see the public side: a landing page (platform name, hero, featured courses, benefits, log in / register), the course catalogue with search, filters, sorting and pagination, and course pages with descriptions and lesson titles. Only published courses appear. Drafts, archived courses, lesson content, learner details, progress and comments are never shown to visitors (decision 23). "Log in to enrol" brings people back to the course after they sign in (decision 24).
+## Notes for the reviewer
+
+| #   | Note                                                                                                     |
+|-----|----------------------------------------------------------------------------------------------------------|
+| 1   | Sign-up sends a real verification code by email.                                                         |
+| 2   | Hosted on Render's free tier, so the app sleeps when idle and the first request can take up to a minute. |
 
 ## Demo credentials
 
-Created by `npm run seed`. These are demo-only accounts.
+### Instructors
 
-| Role | Email | Password |
-| --- | --- | --- |
-| Instructor | ananya.instructor@example.com | Instructor@123 |
-| Instructor | rahul.instructor@example.com | Instructor@123 |
-| Learner | neha.learner@example.com | Learner@123 |
-| Learner | arjun.learner@example.com | Learner@123 |
-| Learner | sara.learner@example.com | Learner@123 |
-| Learner | vikram.learner@example.com | Learner@123 |
-| Learner | meera.learner@example.com | Learner@123 |
-| Learner | kabir.learner@example.com | Learner@123 |
-| Learner | priya.learner@example.com | Learner@123 |
-| Learner | rohan.learner@example.com | Learner@123 |
-| Learner | isha.learner@example.com | Learner@123 |
-| Learner | dev.learner@example.com | Learner@123 |
-| Learner | farah.learner@example.com | Learner@123 |
-| Learner | leela.learner@example.com | Learner@123 |
+| Name         | Email                         | Password       |
+|--------------|-------------------------------|----------------|
+| Ananya Mehta | ananya.instructor@example.com | Instructor@123 |
+| Rahul Verma  | rahul.instructor@example.com  | Instructor@123 |
 
-New sign-ups through `/register` are always learners, and must confirm their email with a 6-digit code before the account is created. **When running locally without SMTP settings, the code is printed in the terminal running `npm run dev`**; to send real emails, see [docs/email-setup.md](docs/email-setup.md). The demo accounts above already exist and do not need verifying. "Forgot password?" on the login page resets a password with a code sent the same way.
+### Learners
 
-The seed creates 14 courses (12 published, 1 draft, 1 archived with its enrolments kept), 46 lessons and 65 enrolments in every progress state, with completions spread over the last eight weeks and a few comments. `neha.learner@example.com` is a good learner account to start with; it has courses in every state.
+| Name          | Email                      | Password    |
+|---------------|----------------------------|-------------|
+| Neha Kapoor   | neha.learner@example.com   | Learner@123 |
+| Arjun Nair    | arjun.learner@example.com  | Learner@123 |
+| Sara Iqbal    | sara.learner@example.com   | Learner@123 |
+| Vikram Singh  | vikram.learner@example.com | Learner@123 |
+| Meera Pillai  | meera.learner@example.com  | Learner@123 |
+| Kabir Das     | kabir.learner@example.com  | Learner@123 |
+| Priya Raman   | priya.learner@example.com  | Learner@123 |
+| Rohan Gupta   | rohan.learner@example.com  | Learner@123 |
+| Isha Malhotra | isha.learner@example.com   | Learner@123 |
+| Dev Patel     | dev.learner@example.com    | Learner@123 |
+| Farah Khan    | farah.learner@example.com  | Learner@123 |
+| Leela Menon   | leela.learner@example.com  | Learner@123 |
+
+## Stack
+
+| Layer    | What you used                           | Why                                                           |
+|----------|-----------------------------------------|---------------------------------------------------------------|
+| Frontend | EJS templates, Bootstrap 5, Chart.js    | Server-rendered pages; simple and responsive.                 |
+| Backend  | Node.js, Express 5                      | Lightweight, with clear routes, controllers and services.     |
+| Database | MongoDB with Mongoose                   | Flexible documents and aggregations for progress and reports. |
+| Hosting  | Render (app) + MongoDB Atlas (database) | Free tiers that suit a Node app and MongoDB.                  |
 
 ## Goal checklist
 
-Status reflects what works in the code today, not what is planned.
+Mark each honestly. Partial is fine — say what is partial.
 
-| # | Goal | Status | Notes |
-| --- | --- | --- | --- |
-| 1 | Accounts and roles | Done | Email/password sign-in; instructor and learner roles. Every instructor action (course and lesson edits, transitions, enrolling others) is guarded on the server: learners get 403. Learners get 404 on draft/archived course pages, can only enrol themselves, only act on their own enrolment, and never see the learner roster. Instructors cannot use learner-only actions (403). Instructors can view, track and export any course, but only a course's own instructor can edit it, change its lessons, publish/archive it or enrol learners into it; anyone else gets 403 (decision 5). Learners can delete their own account from "My account" after re-entering their password; no route accepts another user's id, and instructors cannot use it (decision 27). |
-| 2 | Courses | Done | Create and edit (title, description, category). Archive and restore; archiving hides the course from learners but keeps its lessons and every enrolment, which still shows under My learning as "Archived". The owner can also delete a course permanently, as long as nobody has ever enrolled in it; other instructors get 403 (decision 32). |
-| 3 | Lessons | Done | Each lesson belongs to one course, with title, content and position. Add, edit, remove, move up/down; positions stay 1..n. The course page lists lessons in order. Lessons of an archived course are frozen; the last lesson of a published course cannot be removed. |
-| 4 | Course and progress states | Done | Course moves go through one service with an explicit map (draft→published→archived, archived→published as restore); anything else is rejected with a message. Publishing with no lessons is rejected: "A course needs at least one lesson before it can be published." Progress (not started→in progress→completed) is changed only by completing lessons, through one service that also rejects completing a lesson twice, progress on a finished or unpublished course, and lessons from another course. |
-| 5 | Enrollment | Done | Learners self-enrol in published courses; instructors enrol a learner by email (unknown address, instructor accounts, duplicates and unpublished courses are refused with a reason). Unique index on learner+course. "My learning" lists every enrolment with status and % progress. |
-| 6 | Finding courses | Done | One MongoDB aggregation does text search (title and description), filters (category; status for instructors only; instructor), sorting (title, created date, enrolment count; either direction) and pagination (10 per page) with the total match count. Learners only ever get published courses, whatever the URL says. Query values are whitelisted; filters survive pagination. |
-| 7 | Bulk enrollment and CSV export | Done | Paste addresses and/or upload a .csv/.txt. Each address is reported once as newly enrolled, already enrolled, unknown address, not a learner account, or invalid email; valid rows succeed even when others fail. Per-course progress CSV export (instructors only) with escaping and spreadsheet-formula protection. |
-| 8 | Dashboard | Done | Total learners, published courses, completions this month, learners currently in progress; enrolments by progress state and by course; a bar chart of completions per week for the last eight weeks (Monday-based, UTC, empty weeks shown as zero). All computed by MongoDB on the server. Each headline number is a link to the list behind it (every learner; published courses; this month's completions; learners with courses in progress), built from the same filter so the list always matches the number. Learners get their own summary instead. |
-| 9 | Activity log | Done | Append-only log records creation, every course edit (field, old value, new value), publish/archive/restore, lesson added/edited/removed/moved, instructor enrolments, and comments, each with who and when. Rejected actions leave no entry. Learners enrolled in a course can read and add comments; instructors see the full log. No entry can be edited or deleted. |
-| 10 | Inactivity alerts | Done | `/alerts` lists learners on the instructor's own published courses whose progress is In progress with no further progress for more than 14 days (course, learner, %, last progress, days inactive), computed by a query. Count badge in the navbar. Dismissing records the learner's last-activity time; the alert stays hidden only while that time is unchanged, so after renewed activity plus another 14 quiet days it reappears automatically, with no flag to reset on any write path. Only the course's owner can dismiss. The seed includes open alerts and one dismissed alert. |
+| #  | Goal                       | Status | Notes                                                                                   |
+|----|----------------------------|--------|-----------------------------------------------------------------------------------------|
+| 1  | Accounts and roles         | Done   | Email/password login; instructor and learner roles enforced on the server.              |
+| 2  | Courses                    | Done   | Create, edit, archive, restore; owners can delete courses nobody has enrolled in.       |
+| 3  | Lessons inside courses     | Done   | Add, edit, reorder and remove; shown in order.                                          |
+| 4  | Course and progress states | Done   | Draft → Published → Archived; publishing needs a lesson; progress moves automatically.  |
+| 5  | Enrollment                 | Done   | Self or instructor enrolment; "My learning" shows every course with progress.           |
+| 6  | Finding courses            | Done   | Server-side search, filters, sorting and pagination with total count.                   |
+| 7  | Bulk enrollment            | Done   | Per-address report from pasted or uploaded emails; progress CSV export.                 |
+| 8  | Dashboard                  | Done   | Headline numbers, breakdowns and an 8-week completions chart.                           |
+| 9  | History you cannot rewrite | Done   | Append-only activity log with edits, transitions and comments.                          |
+| 10 | Inactivity alerts          | Done   | 14-day alerts with navbar badge; dismissed alerts return after new inactivity.          |
 
-## Running the tests
+## How much time did you actually spend?
 
-```bash
-npm test
-```
+Approximately 13–14 hours spread across multiple development sessions.
 
-38 tests (built-in `node:test` + `supertest`) against a separate database named in `MONGODB_URI_TEST`. The suite refuses to run unless that database's name contains "test", because it deletes it. Emails are forced to the console during tests. Covered:
-- roles and ownership (403s);
-- the publish guard and illegal course transitions;
-- progress rules;
-- bulk enrolment categories;
-- the append-only activity log;
-- inactivity alerts, including dismissal and reappearance;
-- catalogue totals and paging;
-- CSRF, error-page safety, account deletion, and password-reset privacy.
+## What would you do next, with another 12 hours?
 
-## What I would do next
+| #   | Next step                                     |
+|-----|-----------------------------------------------|
+| 1   | Course ratings and reviews.                   |
+| 2   | Certificates on completion.                   |
+| 3   | Add email notifications for inactive learners |
 
-- Deploy to Render + Atlas (steps written in `docs/deployment.md`).
-- Wrap each "change plus activity-log entry" pair in a MongoDB transaction once running on Atlas (decision 8).
-- Replace the regex search with a text index or Atlas Search before the catalogue grows large, and store an enrolment count on each course (see "What breaks first at 100x" in `docs/schema.md`).
-- An admin screen to create instructor accounts and transfer course ownership.
-- A weekly email to instructors summarising open inactivity alerts.
+## What are you least happy with in this codebase, and why?
 
-## Least happy with
-
-The demo data's history is created by moving timestamps after seeding (decision 22). It is clearly separated from the app and checked for consistency, but it is still a workaround. A cleaner design would let the services accept a clock, so the seed could build the past directly through the same code paths. Second, the dashboard and the alerts list compute everything on every page load: fine at this size, but the first thing to cache if the data grows.
+The seed data's history is created by shifting timestamps after seeding, which is a workaround rather than a clean design.
