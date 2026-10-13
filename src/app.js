@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
 const env = require('./config/env');
 const flash = require('./middleware/flash');
 const { loadCurrentUser } = require('./middleware/auth');
+const alertBadge = require('./middleware/alertBadge');
 const routes = require('./routes');
 const { notFound, errorHandler } = require('./middleware/errors');
 const viewHelpers = require('./utils/viewHelpers');
@@ -47,6 +48,7 @@ function createApp() {
   );
   app.use(flash);
   app.use(loadCurrentUser);
+  app.use(alertBadge);
   app.use((req, res, next) => {
     res.locals.currentPath = req.path;
     next();

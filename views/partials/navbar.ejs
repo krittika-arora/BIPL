@@ -16,7 +16,13 @@
           </li>
           <% if (currentUser.role === 'instructor') { %>
             <li class="nav-item">
-              <a class="nav-link <%= currentPath.startsWith('/alerts') ? 'active' : '' %>" href="/alerts">Alerts</a>
+              <a class="nav-link <%= currentPath.startsWith('/alerts') ? 'active' : '' %>" href="/alerts">
+                Alerts
+                <% if (locals.openAlertCount) { %>
+                  <span class="badge rounded-pill text-bg-warning ms-1"><%= openAlertCount %></span>
+                  <span class="visually-hidden">open inactivity alerts</span>
+                <% } %>
+              </a>
             </li>
           <% } %>
           <% if (currentUser.role === 'learner') { %>
