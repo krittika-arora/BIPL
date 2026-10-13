@@ -7,6 +7,7 @@ const authRoutes = require('./auth');
 const courseRoutes = require('./courses');
 const dashboardRoutes = require('./dashboard');
 const accountRoutes = require('./account');
+const alertRoutes = require('./alerts');
 
 const router = express.Router();
 
@@ -19,5 +20,6 @@ router.get('/my-learning', requireRole(ROLES.LEARNER), enrollmentController.myLe
 router.use('/courses', courseRoutes);
 router.use('/dashboard', dashboardRoutes);
 router.use('/account', accountRoutes);
+router.use('/alerts', alertRoutes);
 
 module.exports = router;

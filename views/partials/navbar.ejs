@@ -14,6 +14,11 @@
           <li class="nav-item">
             <a class="nav-link <%= currentPath.startsWith('/courses') ? 'active' : '' %>" href="/courses">Courses</a>
           </li>
+          <% if (currentUser.role === 'instructor') { %>
+            <li class="nav-item">
+              <a class="nav-link <%= currentPath.startsWith('/alerts') ? 'active' : '' %>" href="/alerts">Alerts</a>
+            </li>
+          <% } %>
           <% if (currentUser.role === 'learner') { %>
             <li class="nav-item">
               <a class="nav-link <%= currentPath === '/my-learning' ? 'active' : '' %>" href="/my-learning">My learning</a>

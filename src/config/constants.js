@@ -68,6 +68,9 @@ const BULK_RESULT = Object.freeze({
 
 const BULK_MAX_ADDRESSES = 500;
 
+// An in-progress learner with no progress for more than this many days raises an alert.
+const INACTIVITY_DAYS = 14;
+
 // One-time codes sent by email (sign-up verification and password reset).
 const EMAIL_CODE = Object.freeze({
   LENGTH: 6,
@@ -81,6 +84,7 @@ const EMAIL_CODE = Object.freeze({
 module.exports = {
   ROLES,
   EMAIL_CODE,
+  INACTIVITY_DAYS,
   COURSE_STATUS,
   COURSE_TRANSITIONS,
   PROGRESS_STATUS,

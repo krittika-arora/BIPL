@@ -1,0 +1,53 @@
+<%- include('../partials/header') %>
+<div class="d-flex flex-wrap justify-content-between align-items-baseline gap-2 mb-1">
+  <h1 class="h3 mb-0">Inactivity alerts <span class="text-muted fw-normal">(<%= total %>)</span></h1>
+</div>
+<p class="text-muted small mb-3">
+  Learners whose progress on one of your published courses is In progress, but who have made no
+  further progress for more than <%= inactivityDays %> days. Longest quiet first.
+</p>
+
+<% if (!rows.length) { %>
+  <div class="bg-white border rounded-3 p-4 text-muted">
+    No alerts. Everyone in progress on your courses has made progress in the last <%= inactivityDays %> days.
+  </div>
+<% } else { %>
+  <div class="table-responsive bg-white border rounded-3">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th scope="col">Learner</th>
+          <th scope="col">Course</th>
+          <th scope="col" style="min-width: 8rem">Progress</th>
+          <th scope="col">Last progress</th>
+          <th scope="col" class="text-end">Days inactive</th>
+          <th scope="col"><span class="visually-hidden">Actions</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% rows.forEach((row) => { %>
+          <% const percent = progressPercent(row.enrollment, row.lessonIds); %>
+          <tr>
+            <td>
+              <span class="fw-semibold"><%= row.learner ? row.learner.name : 'Deleted user' %></span>
+              <div class="small text-muted"><%= row.learner ? row.learner.email : '' %></div>
+            </td>
+            <td><a href="/courses/<%= row.course._id %>" class="text-decoration-none"><%= row.course.title %></a></td>
+            <td>
+              <div class="progress" style="height: .4rem" role="progressbar" aria-label="Progress"
+                   aria-valuenow="<%= percent %>" aria-valuemin="0" aria-valuemax="100">
+                <div class="progress-bar" style="width: <%= percent %>%"></div>
+              </div>
+              <div class="small text-muted"><%= percent %>%</div>
+            </td>
+            <td class="text-nowrap small"><%= formatDate(row.lastActivityAt) %></td>
+            <td class="text-end"><span class="badge text-bg-warning"><%= row.daysInactive %></span></td>
+            <td class="text-end"></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+  <%- include('../partials/list-pager') %>
+<% } %>
+<%- include('../partials/footer') %>
