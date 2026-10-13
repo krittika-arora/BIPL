@@ -1,5 +1,7 @@
 # CourseTrack
 
+**Live:** https://coursetrack-krittika.onrender.com (demo accounts in [SUBMISSION.md](SUBMISSION.md))
+
 An internal training platform. Instructors build and publish courses made of ordered lessons; learners enrol and work through them at their own pace; progress is tracked automatically, so instructors can see who has finished, who is partway through and who has gone quiet.
 
 **Stack:** Node.js + Express 5, EJS server-rendered views, Bootstrap 5, MongoDB with Mongoose, sessions stored in MongoDB. Chart.js (from a CDN) draws the dashboard chart; multer reads uploaded email lists.

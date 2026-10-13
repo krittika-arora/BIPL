@@ -5,7 +5,7 @@
 | Item              | Link                                     |
 |-------------------|------------------------------------------|
 | GitHub repository | https://github.com/krittika-arora/BIPL   |
-| Live application  |                                          |
+| Live application  |https://coursetrack-krittika.onrender.com|
 
 ## Notes for the reviewer
 
