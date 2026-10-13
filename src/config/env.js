@@ -27,9 +27,25 @@ function mailConfig() {
     return { transport: 'console', from: 'CourseTrack <no-reply@localhost>' };
   }
 
+  // Brevo's HTTPS email API: works on hosts that block outgoing SMTP ports (e.g. Render's free
+  // plan), because it only needs an ordinary HTTPS connection. Takes priority over SMTP.
+  const brevoKey = process.env.BREVO_API_KEY || '';
+  if (brevoKey) {
+    const from = process.env.MAIL_FROM || '';
+    if (!from) throw new Error('Set MAIL_FROM to the sender address verified in Brevo.');
+    return {
+      transport: 'brevo',
+      apiKey: brevoKey,
+      apiUrl: process.env.BREVO_API_URL || 'https://api.brevo.com/v3/smtp/email',
+      from,
+    };
+  }
+
   const host = process.env.SMTP_HOST || '';
   if (!host) {
-    if (isProduction) throw new Error('Missing required environment variable: SMTP_HOST');
+    if (isProduction) {
+      throw new Error('Missing required environment variable: BREVO_API_KEY or SMTP_HOST');
+    }
     return { transport: 'console', from: 'CourseTrack <no-reply@localhost>' };
   }
 

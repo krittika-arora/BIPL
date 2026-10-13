@@ -29,7 +29,8 @@ npm test                  # 38 tests against MONGODB_URI_TEST (a separate databa
 | `MONGODB_URI_TEST` | for `npm test` | Separate database for the tests, which delete it; the name must contain "test" |
 | `PORT` | no | Defaults to 3000 |
 | `NODE_ENV` | no | `production` enables secure cookies and proxy trust, and makes SMTP settings required |
-| `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM` | in production | Outgoing email for sign-up verification codes. In development, leave `SMTP_HOST` empty and the email is printed in the terminal instead. Step-by-step setup: [docs/email-setup.md](docs/email-setup.md) |
+| `BREVO_API_KEY` + `MAIL_FROM` | in production (or SMTP below) | Sends sign-up and password-reset codes through Brevo's HTTPS API. Used on Render, whose free plan blocks SMTP ports. `MAIL_FROM` must be a sender verified in Brevo |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM` | alternative to Brevo | Email over SMTP (e.g. Gmail with an App Password). In development, leave both unset and emails are printed in the terminal instead |
 
 The app refuses to start if a required variable is missing; there are no hardcoded fallbacks. `.env` is git-ignored.
 

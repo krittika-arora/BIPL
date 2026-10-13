@@ -21,8 +21,45 @@ function getTransporter() {
   return transporter;
 }
 
-// One line for the startup log, never including the password.
+// "CourseTrack <me@example.com>" → { name: 'CourseTrack', email: 'me@example.com' }
+function parseAddress(value) {
+  const match = String(value).match(/^\s*(.*?)\s*<([^>]+)>\s*$/);
+  if (!match) return { email: String(value).trim() };
+  const name = match[1].replace(/^"|"$/g, '');
+  return name ? { name, email: match[2].trim() } : { email: match[2].trim() };
+}
+
+// Sends through Brevo's transactional email API over HTTPS (no SMTP port needed).
+async function sendViaBrevo({ to, subject, text, html }) {
+  const response = await fetch(env.mail.apiUrl, {
+    method: 'POST',
+    headers: {
+      'api-key': env.mail.apiKey,
+      'content-type': 'application/json',
+      accept: 'application/json',
+    },
+    body: JSON.stringify({
+      sender: parseAddress(env.mail.from),
+      to: [{ email: to }],
+      subject,
+      textContent: text,
+      htmlContent: html || undefined,
+    }),
+    signal: AbortSignal.timeout(15000),
+  });
+  if (!response.ok) {
+    const detail = await response.text().catch(() => '');
+    const err = new Error(`Brevo API ${response.status}: ${detail.slice(0, 300)}`);
+    err.status = response.status;
+    throw err;
+  }
+}
+
+// One line for the startup log, never including the password or API key.
 function describeTransport() {
+  if (env.mail.transport === 'brevo') {
+    return `Mail: Brevo HTTPS API, from ${env.mail.from}`;
+  }
   if (env.mail.transport !== 'smtp') {
     return 'Mail: no SMTP_HOST set, emails will be printed to this console';
   }
@@ -32,6 +69,10 @@ function describeTransport() {
 }
 
 async function sendMail({ to, subject, text, html }) {
+  if (env.mail.transport === 'brevo') {
+    await sendViaBrevo({ to, subject, text, html });
+    return { delivered: true };
+  }
   const smtp = getTransporter();
   if (!smtp) {
     // Development only (env.js refuses to start in production without SMTP).

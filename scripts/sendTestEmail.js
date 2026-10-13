@@ -26,6 +26,8 @@ async function main() {
 main().catch((err) => {
   console.error(`Sending failed: ${err.message}`);
   if (err.code === 'EAUTH') console.error('The server rejected the username or password (for Gmail, use an App Password).');
+  if (err.status === 401) console.error('Brevo rejected the API key. Check BREVO_API_KEY.');
+  if (err.status === 400) console.error('Brevo refused the message. Is MAIL_FROM a sender you verified in Brevo?');
   if (err.code === 'ESOCKET' || err.code === 'ETIMEDOUT' || err.code === 'ECONNECTION') {
     console.error('Could not reach the server. Check SMTP_HOST, SMTP_PORT and SMTP_SECURE (465 = true, 587 = false).');
   }
