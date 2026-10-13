@@ -2,7 +2,7 @@
 
 **Assignment:** Internal training: courses, lessons and learner progress tracking
 **Repository:** https://github.com/krittika-arora/BIPL
-**Live application:** not deployed yet (planned for session 4)
+**Live application:** not deployed yet. The app is complete and tested; deployment steps for Render + MongoDB Atlas are in [docs/deployment.md](docs/deployment.md).
 
 ## Without logging in
 
@@ -48,4 +48,32 @@ Status reflects what works in the code today, not what is planned.
 | 7 | Bulk enrollment and CSV export | Done | Paste addresses and/or upload a .csv/.txt. Each address is reported once as newly enrolled, already enrolled, unknown address, not a learner account, or invalid email; valid rows succeed even when others fail. Per-course progress CSV export (instructors only) with escaping and spreadsheet-formula protection. |
 | 8 | Dashboard | Done | Total learners, published courses, completions this month, learners currently in progress; enrolments by progress state and by course; a bar chart of completions per week for the last eight weeks (Monday-based, UTC, empty weeks shown as zero). All computed by MongoDB on the server. Each headline number is a link to the list behind it (every learner; published courses; this month's completions; learners with courses in progress), built from the same filter so the list always matches the number. Learners get their own summary instead. |
 | 9 | Activity log | Done | Append-only log records creation, every course edit (field, old value, new value), publish/archive/restore, lesson added/edited/removed/moved, instructor enrolments, and comments, each with who and when. Rejected actions leave no entry. Learners enrolled in a course can read and add comments; instructors see the full log. No entry can be edited or deleted. |
-| 10 | Inactivity alerts | Not started | |
+| 10 | Inactivity alerts | Done | `/alerts` lists learners on the instructor's own published courses whose progress is In progress with no further progress for more than 14 days (course, learner, %, last progress, days inactive), computed by a query. Count badge in the navbar. Dismissing records the learner's last-activity time; the alert stays hidden only while that time is unchanged, so after renewed activity plus another 14 quiet days it reappears automatically, with no flag to reset on any write path. Only the course's owner can dismiss. The seed includes open alerts and one dismissed alert. |
+
+## Running the tests
+
+```bash
+npm test
+```
+
+38 tests (built-in `node:test` + `supertest`) against a separate database named in `MONGODB_URI_TEST`. The suite refuses to run unless that database's name contains "test", because it deletes it. Emails are forced to the console during tests. Covered:
+- roles and ownership (403s);
+- the publish guard and illegal course transitions;
+- progress rules;
+- bulk enrolment categories;
+- the append-only activity log;
+- inactivity alerts, including dismissal and reappearance;
+- catalogue totals and paging;
+- CSRF, error-page safety, account deletion, and password-reset privacy.
+
+## What I would do next
+
+- Deploy to Render + Atlas (steps written in `docs/deployment.md`).
+- Wrap each "change plus activity-log entry" pair in a MongoDB transaction once running on Atlas (decision 8).
+- Replace the regex search with a text index or Atlas Search before the catalogue grows large, and store an enrolment count on each course (see "What breaks first at 100x" in `docs/schema.md`).
+- An admin screen to create instructor accounts and transfer course ownership.
+- A weekly email to instructors summarising open inactivity alerts.
+
+## Least happy with
+
+The demo data's history is created by moving timestamps after seeding (decision 22). It is clearly separated from the app and checked for consistency, but it is still a workaround. A cleaner design would let the services accept a clock, so the seed could build the past directly through the same code paths. Second, the dashboard and the alerts list compute everything on every page load: fine at this size, but the first thing to cache if the data grows.

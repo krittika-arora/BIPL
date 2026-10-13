@@ -50,6 +50,20 @@ An outstanding "forgot password" request. Only created for real accounts; see de
 | sendCount, lastSentAt | Number, Date | 60 s between emails, at most 5 per request |
 | expiresAt | Date | **TTL index**: deleted 60 minutes after the last email |
 
+## AlertDismissal (`alertdismissals`)
+
+An instructor dismissed the inactivity alert for one enrolment. Alerts themselves are not stored: they are computed by a query (decision 29).
+
+| Field | Type | Rules |
+| --- | --- | --- |
+| enrollment | ObjectId → Enrollment | required |
+| course, learner | ObjectId | copied for reporting; removed with the learner's account |
+| dismissedBy | ObjectId → User | the course owner who dismissed it |
+| activityAtDismissal | Date | the enrolment's `lastActivityAt` at the moment of dismissal. The alert stays hidden only while the two are equal. |
+| dismissedAt | Date | when |
+
+Index: `{ enrollment: 1, activityAtDismissal: 1 }` **unique**: one dismissal per quiet spell, and the lookup the alerts query uses.
+
 ## Lesson (`lessons`)
 
 | Field | Type | Rules |

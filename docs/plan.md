@@ -57,6 +57,13 @@ Built as planned, plus some rules that came up while building rather than from t
 - CSRF protection on forms, final validation pass.
 - Deployment (Render + MongoDB Atlas) with seeded demo data; docs and checklist finalised.
 
+### Session 4 notes: what changed against the plan
+
+- Alerts are scoped to the instructor who owns each course, to match the ownership rule added after session 3 (decision 5).
+- Security went beyond CSRF: protective headers, a full git-history scan for secrets (clean), and tests that check error pages never expose internals.
+- Deployment is written up (`docs/deployment.md`) but deliberately not done yet.
+- Added after the original plan, at my request: public landing page and catalogue, email verification at sign-up, forgot password, account deletion, course ownership, and clickable dashboard numbers.
+
 ## Cut if time runs short
 
 Listed up front so scope decisions are deliberate: rich-text lesson content (plain text is enough), email notifications, file attachments on lessons, an admin screen for promoting users to instructor.

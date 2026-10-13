@@ -13,6 +13,7 @@ npm install
 cp .env.example .env      # then set MONGODB_URI and SESSION_SECRET
 npm run seed              # resets the database and loads demo data
 npm run dev               # http://localhost:3000, restarts on file changes
+npm test                  # 38 tests against MONGODB_URI_TEST (a separate database)
 ```
 
 `npm start` runs without file watching (used in production). `npm run mail:test -- you@example.com` checks your SMTP settings by sending one test email.
@@ -23,6 +24,7 @@ npm run dev               # http://localhost:3000, restarts on file changes
 | --- | --- | --- |
 | `MONGODB_URI` | yes | MongoDB connection string |
 | `SESSION_SECRET` | yes | Signs the session cookie. Use a long random string |
+| `MONGODB_URI_TEST` | for `npm test` | Separate database for the tests, which delete it; the name must contain "test" |
 | `PORT` | no | Defaults to 3000 |
 | `NODE_ENV` | no | `production` enables secure cookies and proxy trust, and makes SMTP settings required |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM` | in production | Outgoing email for sign-up verification codes. In development, leave `SMTP_HOST` empty and the email is printed in the terminal instead. Step-by-step setup: [docs/email-setup.md](docs/email-setup.md) |
@@ -48,11 +50,14 @@ src/
 views/                   EJS templates (partials/ holds the shared layout)
 public/                  static CSS
 scripts/seed.js          demo data (scripts/seedHistory.js spreads it over past weeks)
+tests/                   node:test + supertest suite (npm test)
 docs/                    plan, decisions, schema, AI usage
 ```
 
 ## Documentation
 
+- [docs/architecture.md](docs/architecture.md): how a request flows through the app, and where each feature lives
+- [docs/deployment.md](docs/deployment.md): deploying to Render with MongoDB Atlas
 - [docs/plan.md](docs/plan.md): build plan by session
 - [docs/decisions.md](docs/decisions.md): design decisions and trade-offs
 - [docs/schema.md](docs/schema.md): data model

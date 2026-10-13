@@ -125,7 +125,7 @@ The dashboard needs weeks of history, but every service stamps "now". The seed t
 
 Later edits and comments keep their real time. A fixed random seed means every run gives the same data.
 
-This is the one place outside the app that writes timestamps, and it has to use the raw driver: Mongoose treats `createdAt` as immutable, and the activity log's append-only guard (correctly) refuses the change. It runs only straight after the seed has dropped and rebuilt the database, before anyone uses the app. A check after seeding confirmed that no enrolment predates its course, no completion predates its enrolment or lies in the future, nobody in progress has been quiet for over 14 days, and every "instructor enrolled" entry matches its enrolment's time.
+This is the one place outside the app that writes timestamps, and it has to use the raw driver: Mongoose treats `createdAt` as immutable, and the activity log's append-only guard (correctly) refuses the change. It runs only straight after the seed has dropped and rebuilt the database, before anyone uses the app. A check after seeding confirmed that no enrolment predates its course, no completion predates its enrolment or lies in the future, in-progress learners are either recently active or (since session 4, deliberately) quiet for 16–40 days so alerts can be seen, and every "instructor enrolled" entry matches its enrolment's time.
 
 ## 23. A public front door, with only generic information
 
@@ -201,3 +201,23 @@ The pages show learner names and emails, so they are instructor-only (learners g
 (Tested: the reset page's HTML is identical for a known and an unknown address apart from the masked email.) One accepted exception: if the mail server is down, a real account's request reports the failure while an unknown one does not.
 
 **A reset signs out every existing session.** Setting a new password stamps `User.passwordChangedAt`. Each session records when it signed in (`authenticatedAt`), and `loadCurrentUser` ends any session that signed in before the change. Someone who had stolen a session cookie, or a forgotten logged-in laptop, is locked out by the reset. After resetting, the person logs in with the new password rather than being signed in automatically, which confirms they know it.
+
+## 29. Inactivity alerts are a query, and dismissals snapshot the activity time
+
+A learner raises an alert when their enrolment in a published course is `in_progress` and `lastActivityAt` is **more than** 14 days ago (`INACTIVITY_DAYS`). Nothing is stored for an open alert: `alertService` computes them with one aggregation, starting from the instructor's own published courses. That keeps the query small, matches the ownership rule (decision 5), and means the badge only counts alerts the instructor can act on. Archived courses raise no alerts, because nobody can make progress in them.
+
+**Dismissal without flags.** Dismissing creates an `AlertDismissal` holding the enrolment's `lastActivityAt` at that moment (`activityAtDismissal`). The alerts query hides an alert only if a dismissal exists with exactly the current `lastActivityAt`. When the learner makes progress, `lastActivityAt` changes and the old dismissal stops matching. If they then go quiet for another 14 days, the alert reappears on its own. No code path has to remember to reset a "dismissed" flag, which is the bug a stored boolean invites. The test suite checks this end to end and leaves the old dismissal untouched.
+
+**Badge.** One aggregate count per instructor page view (`middleware/alertBadge.js`), skipped for learners, visitors and form posts. At larger scale this is the first thing to cache.
+
+## 30. CSRF protection without a library
+
+Every session gets a random 32-byte token, created only when a page actually shows a form, so visitors who just browse do not get a session. Every POST form includes it as a hidden field, and `middleware/csrf.js` rejects any non-GET request whose `_csrf` field (or `X-CSRF-Token` header) does not match, using a constant-time comparison, with a clear 403 page. The one multipart form (bulk upload) is checked inside its route right after `multer` parses it, because the token is a form field. This adds to the `SameSite=Lax` session cookie rather than relying on it.
+
+The same commit adds standard headers: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: same-origin`, `Cross-Origin-Opener-Policy: same-origin`, and HSTS in production. A Content-Security-Policy was left out because the views use small inline `onsubmit` confirmations; moving those into a script file would allow a strict CSP.
+
+## 31. Tests run against their own database and can never send email
+
+`npm test` runs `node:test` + `supertest` against `MONGODB_URI_TEST`, and refuses to start unless that database's name contains "test", since the suite drops it. `tests/helpers.js` sets `MAIL_TRANSPORT=console` before the config loads, so tests cannot send real email even when `.env` holds real SMTP settings (production rejects `MAIL_TRANSPORT=console`). Tests drive the app the way a browser does, logging in through the real form with its CSRF token. Time-dependent alert rules are tested by passing a `now` into the alert service rather than waiting.
+
+The suite was checked for false confidence: temporarily removing the publish guard, and making dismissals ignore the activity time, each made the matching tests fail.
