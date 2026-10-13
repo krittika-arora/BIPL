@@ -221,3 +221,13 @@ The same commit adds standard headers: `X-Content-Type-Options: nosniff`, `X-Fra
 `npm test` runs `node:test` + `supertest` against `MONGODB_URI_TEST`, and refuses to start unless that database's name contains "test", since the suite drops it. `tests/helpers.js` sets `MAIL_TRANSPORT=console` before the config loads, so tests cannot send real email even when `.env` holds real SMTP settings (production rejects `MAIL_TRANSPORT=console`). Tests drive the app the way a browser does, logging in through the real form with its CSRF token. Time-dependent alert rules are tested by passing a `now` into the alert service rather than waiting.
 
 The suite was checked for false confidence: temporarily removing the publish guard, and making dismissals ignore the activity time, each made the matching tests fail.
+
+## 32. Owners can delete a course, but only if nobody has ever enrolled
+
+The course page shows the owner a **Delete this course** section. It permanently removes the course and its lessons, and is refused in two cases:
+
+- **Not the owner:** another instructor gets 403, and so does a learner. The check is the same `getCourseForEdit` ownership check used for every other change (decision 5).
+- **Anyone has enrolled:** deleting would erase those learners' progress and completion records. Archiving exists precisely to take a course out of the catalogue while keeping that history, so the message points there instead.
+
+This makes deletion safe for what it is useful for: drafts, mistakes, and courses nobody has started. The deletion is written to the activity log first (`deleted`, with the course title), and that entry stays, since the log is append-only.
+**Cost:** a course can never be fully removed once someone has enrolled. If that is ever needed (e.g. a data-protection request), it should be a deliberate admin action, not a button.

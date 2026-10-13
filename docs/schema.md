@@ -101,7 +101,7 @@ Append-only. See decision 7 in `decisions.md` for how this is enforced.
 | --- | --- | --- |
 | course | ObjectId → Course | required |
 | actor | ObjectId → User | required; who did it |
-| action | String | `created`, `updated`, `published`, `archived`, `restored`, `lesson_added`, `lesson_updated`, `lesson_removed`, `lesson_moved`, `learner_enrolled`, `learners_bulk_enrolled`, `comment` |
+| action | String | `created`, `updated`, `published`, `archived`, `restored`, `lesson_added`, `lesson_updated`, `lesson_removed`, `lesson_moved`, `learner_enrolled`, `learners_bulk_enrolled`, `comment`, `alert_dismissed`, `deleted` |
 | subject | String | what inside the course it was about (a lesson title), copied so it still reads correctly after a rename or removal |
 | message | String | comment text, max 1000; only for `comment` |
 | changes | Array of `{ field, from, to }` | only the fields that changed; status changes are recorded as `status: from → to`, moves as `position: from → to` |

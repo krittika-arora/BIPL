@@ -139,3 +139,14 @@ Gave the assistant the session 4 brief (alerts with dismiss-and-reappear, seed d
 - **Forms with EJS inside the tag.** Adding the hidden token field to every form with a simple pattern would have missed tags spanning several lines or containing `<%= ... %>` (whose `>` ends a naive match). A small scanner that skips EJS blocks found all 23 POST forms; the one GET search form correctly has none.
 - **Secrets.** A scan of the full git history found no `.env`, no connection strings, and neither the real session secret nor the SMTP password in any commit. The only hit was the documented placeholder `abcdefghijklmnop`.
 - **Tests that can fail.** All 38 tests passed on the first run, so two rules were deliberately broken to make sure the tests notice: removing the publish guard failed the two publish-guard tests, and making dismissals ignore the activity time failed the reappearance tests. Both changes were reverted.
+
+### Follow-up: instructors deleting their own courses (my requirement, implemented with the assistant)
+
+I asked for instructors to be able to delete courses they created, but never another instructor's.
+
+**What came back:** owner-only deletion through the same ownership check as every other course change. The assistant added one rule I had not specified: a course with any enrolments cannot be deleted, only archived, so learners' progress and completion records are never erased (decision 32). It flagged this as a choice I could reverse.
+
+**What was checked and corrected:**
+- **Tests.** Four new tests (42 in total): the owner deletes an unused course with its lessons, and the deletion is logged; another instructor gets 403; a learner gets 403; a course with an enrolment is refused with the "archive instead" message. On the course page, the owner sees the delete section, or the reason it is unavailable, and other instructors don't see it at all.
+- **The ownership test can fail.** The owner check was temporarily removed, and the "another instructor" test failed as it should.
+- **A slip while restoring that experiment.** The assistant used `git checkout` on the file to undo the temporary change, which also discarded the new, not-yet-committed deletion code in that file. It noticed, re-applied the code from its own edit script, and re-ran the full suite (42/42) before committing. Restoring by reversing the one changed line would have been the safer choice.
