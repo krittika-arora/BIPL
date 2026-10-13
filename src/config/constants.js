@@ -54,6 +54,7 @@ const ACTIVITY_ACTIONS = Object.freeze({
   LEARNERS_BULK_ENROLLED: 'learners_bulk_enrolled',
   COMMENT: 'comment',
   ALERT_DISMISSED: 'alert_dismissed',
+  DELETED: 'deleted',
 });
 
 const COMMENT_MAX_LENGTH = 1000;

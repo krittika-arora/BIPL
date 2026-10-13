@@ -134,4 +134,16 @@ async function changeStatus(req, res) {
   res.redirect(`/courses/${req.params.id}`);
 }
 
-module.exports = { index, show, newForm, create, editForm, update, changeStatus };
+async function destroy(req, res) {
+  try {
+    const { title } = await courseService.deleteCourse(req.user, req.params.id);
+    req.flash('success', `"${title}" and its lessons have been deleted.`);
+    return res.redirect('/courses');
+  } catch (err) {
+    if (!HttpError.isRuleViolation(err)) throw err;
+    req.flash('danger', err.message);
+    return res.redirect(`/courses/${req.params.id}`);
+  }
+}
+
+module.exports = { index, show, newForm, create, editForm, update, changeStatus, destroy };

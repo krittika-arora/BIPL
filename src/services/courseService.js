@@ -2,6 +2,7 @@ const Course = require('../models/Course');
 const Lesson = require('../models/Lesson');
 const User = require('../models/User');
 const Enrollment = require('../models/Enrollment');
+const AlertDismissal = require('../models/AlertDismissal');
 const activityService = require('./activityService');
 const HttpError = require('../utils/httpError');
 const { assertCourseOwner } = require('../utils/ownership');
@@ -189,6 +190,34 @@ async function transitionCourse(actor, courseId, toStatus) {
   return { course, from, to: toStatus };
 }
 
+// Permanently deletes a course and its lessons. Only its owner can, and only while nobody has
+// ever enrolled: deleting a course people have taken would erase their progress and completion
+// records, which archiving exists to preserve. The deletion itself stays in the activity log.
+async function deleteCourse(actor, courseId) {
+  const course = await getCourseForEdit(courseId, actor);
+
+  const enrolled = await Enrollment.countDocuments({ course: course._id });
+  if (enrolled > 0) {
+    const who = enrolled === 1 ? '1 learner has' : `${enrolled} learners have`;
+    throw HttpError.ruleViolation(
+      `${who} enrolled in this course, so deleting it would erase their progress records. ` +
+        'Archive it instead: it leaves the catalogue and everyone\'s history is kept.',
+    );
+  }
+
+  await activityService.record({
+    course: course._id,
+    actor: actor._id,
+    action: ACTIVITY_ACTIONS.DELETED,
+    subject: course.title,
+  });
+  // The course first, so no new enrolment can start while its lessons are being removed.
+  await Course.deleteOne({ _id: course._id });
+  const { deletedCount: lessonsDeleted } = await Lesson.deleteMany({ course: course._id });
+  await AlertDismissal.deleteMany({ course: course._id });
+  return { title: course.title, lessonsDeleted };
+}
+
 module.exports = {
   listCourses,
   countPublishedCategories,
@@ -198,4 +227,5 @@ module.exports = {
   createCourse,
   updateCourse,
   transitionCourse,
+  deleteCourse,
 };

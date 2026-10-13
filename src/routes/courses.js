@@ -24,6 +24,7 @@ router.get('/:id', courseController.show);
 router.get('/:id/edit', instructorOnly, courseController.editForm);
 router.post('/:id/edit', instructorOnly, courseRules, courseController.update);
 router.post('/:id/status', instructorOnly, courseController.changeStatus);
+router.post('/:id/delete', instructorOnly, courseController.destroy);
 router.post('/:id/enroll', learnerOnly, enrollmentController.enrolSelf);
 router.post(
   '/:id/enrollments',
