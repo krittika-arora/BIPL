@@ -57,9 +57,7 @@ docs/                    plan, decisions, schema, AI usage
 ## Documentation
 
 - [docs/architecture.md](docs/architecture.md): how a request flows through the app, and where each feature lives
-- [docs/deployment.md](docs/deployment.md): deploying to Render with MongoDB Atlas
 - [docs/plan.md](docs/plan.md): build plan by session
 - [docs/decisions.md](docs/decisions.md): design decisions and trade-offs
 - [docs/schema.md](docs/schema.md): data model
-- [docs/email-setup.md](docs/email-setup.md): configuring SMTP for sign-up verification emails
 - [docs/ai-prompts.md](docs/ai-prompts.md): how AI assistance was used and what was corrected
