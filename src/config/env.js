@@ -20,6 +20,13 @@ const isProduction = process.env.NODE_ENV === 'production';
 // Outgoing email (sign-up verification codes). With no SMTP_HOST in development, emails are
 // printed to the server console instead; production refuses to start without SMTP settings.
 function mailConfig() {
+  // MAIL_TRANSPORT=console prints emails even when SMTP is configured in .env. The test suite
+  // sets it so tests can never send real email; production does not allow it.
+  if (process.env.MAIL_TRANSPORT === 'console') {
+    if (isProduction) throw new Error('MAIL_TRANSPORT=console is not allowed in production.');
+    return { transport: 'console', from: 'CourseTrack <no-reply@localhost>' };
+  }
+
   const host = process.env.SMTP_HOST || '';
   if (!host) {
     if (isProduction) throw new Error('Missing required environment variable: SMTP_HOST');
