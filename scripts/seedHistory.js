@@ -70,8 +70,12 @@ async function spreadHistory({ now = new Date(), seed = 2026 } = {}) {
         enrolledAt = between(random, openedAt, new Date(completedAt.getTime() - DAY / 2));
         Object.assign(set, { completedAt, lastActivityAt: completedAt, updatedAt: completedAt });
       } else if (enrollment.status === PROGRESS_STATUS.IN_PROGRESS) {
-        // Recent activity only; nobody is "quiet" yet.
-        const lastActivityAt = between(random, new Date(now.getTime() - 10 * DAY), now);
+        // Most made progress recently; about a third have gone quiet for 16-40 days, so the
+        // instructors' inactivity alerts have something to show.
+        const quiet = random() < 0.35;
+        const lastActivityAt = quiet
+          ? between(random, new Date(now.getTime() - 40 * DAY), new Date(now.getTime() - 16 * DAY))
+          : between(random, new Date(now.getTime() - 10 * DAY), now);
         enrolledAt = between(random, openedAt, new Date(lastActivityAt.getTime() - DAY / 2));
         Object.assign(set, { lastActivityAt, updatedAt: lastActivityAt });
       } else {

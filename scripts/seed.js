@@ -15,6 +15,7 @@ const lessonService = require('../src/services/lessonService');
 const enrollmentService = require('../src/services/enrollmentService');
 const progressService = require('../src/services/progressService');
 const activityService = require('../src/services/activityService');
+const alertService = require('../src/services/alertService');
 const { spreadHistory, createRandom } = require('./seedHistory');
 const { ROLES, COURSE_STATUS } = require('../src/config/constants');
 
@@ -261,6 +262,13 @@ async function seed() {
 
   await spreadHistory();
 
+  // One alert already dismissed, so the dismiss-and-reappear behaviour can be seen straight away.
+  const ananyaAlerts = await alertService.listOpenAlerts(instructors[0]._id);
+  if (ananyaAlerts.rows.length) {
+    await alertService.dismissAlert(instructors[0], ananyaAlerts.rows[0].enrollmentId);
+  }
+  const openAlerts = await Promise.all(instructors.map((i) => alertService.countOpenAlerts(i._id)));
+
   const [courseCount, lessonCount, enrollmentCount, byStatus] = await Promise.all([
     Course.countDocuments(),
     Lesson.countDocuments(),
@@ -270,7 +278,8 @@ async function seed() {
   const statusSummary = byStatus.map(({ _id, count }) => `${_id}: ${count}`).join(', ');
   console.log(
     `Seeded ${instructors.length} instructors, ${learners.length} learners, ${courseCount} courses, ` +
-      `${lessonCount} lessons and ${enrollmentCount} enrolments (${statusSummary}).`,
+      `${lessonCount} lessons and ${enrollmentCount} enrolments (${statusSummary}). ` +
+      `Open inactivity alerts: ${INSTRUCTORS.map((p, i) => `${p.name} ${openAlerts[i]}`).join(', ')}; 1 dismissed.`,
   );
 }
 
