@@ -1,3 +1,6 @@
+const dns = require("node:dns");
+dns.setServers(["8.8.8.8"]);
+
 // Resets the database and loads demo data. Run with: npm run seed
 const mongoose = require('mongoose');
 const env = require('../src/config/env');
@@ -211,8 +214,13 @@ async function seed() {
 
   await connectDB(env.mongoUri);
 
-  // A full reset is the one place the activity log is cleared, by dropping the database.
-  await mongoose.connection.dropDatabase();
+  // A full reset is the one place the activity log is cleared. Each collection is dropped rather
+  // than the whole database: a hosted "read and write" user (e.g. on Atlas) may drop collections
+  // but not databases, and deleteMany would be (correctly) refused by the append-only log.
+  const collections = await mongoose.connection.db.listCollections({}, { nameOnly: true }).toArray();
+  for (const { name } of collections) {
+    if (!name.startsWith('system.')) await mongoose.connection.db.dropCollection(name);
+  }
   await Promise.all(
     [User, Course, Lesson, Enrollment, ActivityLog, AlertDismissal, PendingSignup, PasswordReset].map(
       (model) => model.syncIndexes(),
