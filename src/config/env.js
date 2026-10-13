@@ -29,9 +29,10 @@ function mailConfig() {
 
   // Brevo's HTTPS email API: works on hosts that block outgoing SMTP ports (e.g. Render's free
   // plan), because it only needs an ordinary HTTPS connection. Takes priority over SMTP.
-  const brevoKey = process.env.BREVO_API_KEY || '';
+  // Trimmed: a key pasted into a hosting dashboard often picks up a stray space or line break.
+  const brevoKey = (process.env.BREVO_API_KEY || '').trim();
   if (brevoKey) {
-    const from = process.env.MAIL_FROM || '';
+    const from = (process.env.MAIL_FROM || '').trim();
     if (!from) throw new Error('Set MAIL_FROM to the sender address verified in Brevo.');
     return {
       transport: 'brevo',
