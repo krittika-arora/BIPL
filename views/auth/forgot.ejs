@@ -9,6 +9,7 @@
           <div class="alert alert-danger py-2" role="alert"><%= errors.form %></div>
         <% } %>
         <form action="/forgot-password" method="post" novalidate>
+          <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
           <div class="mb-3">
             <label for="email" class="form-label">Email</label>
             <input type="email" id="email" name="email" autocomplete="email" required autofocus

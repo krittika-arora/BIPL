@@ -12,6 +12,7 @@
         <h1 class="h4 mb-1">New course</h1>
         <p class="text-muted small mb-4">New courses start as drafts and are only visible to instructors until published.</p>
         <form action="/courses" method="post" novalidate>
+          <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
           <%- include('_form') %>
           <div class="d-flex gap-2">
             <button type="submit" class="btn btn-primary">Create course</button>

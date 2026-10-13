@@ -30,6 +30,7 @@
           <div class="alert alert-danger py-2" role="alert"><%= error %></div>
         <% } %>
         <form action="/courses/<%= course._id %>/enrollments/bulk" method="post" enctype="multipart/form-data">
+          <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
           <div class="mb-3">
             <label for="emails" class="form-label">Email addresses</label>
             <textarea id="emails" name="emails" rows="8" class="form-control"

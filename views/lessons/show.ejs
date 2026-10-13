@@ -26,6 +26,7 @@
         <span class="badge text-bg-success">&check; Completed</span>
       <% } else if (enrollment.status !== 'completed') { %>
         <form action="/courses/<%= course._id %>/lessons/<%= lesson._id %>/complete" method="post">
+          <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
           <button type="submit" class="btn btn-success">Mark as complete</button>
         </form>
       <% } %>

@@ -45,6 +45,7 @@
             <td class="text-end"><span class="badge text-bg-warning"><%= row.daysInactive %></span></td>
             <td class="text-end">
               <form action="/alerts/<%= row.enrollmentId %>/dismiss<%= page > 1 ? `?page=${page}` : '' %>" method="post">
+                <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
                 <button type="submit" class="btn btn-outline-secondary btn-sm">Dismiss</button>
               </form>
             </td>

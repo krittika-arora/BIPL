@@ -19,6 +19,7 @@
         <% } %>
 
         <form action="/register/verify" method="post" novalidate>
+          <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
           <div class="mb-3">
             <label for="code" class="form-label">Verification code</label>
             <input type="text" id="code" name="code" required autofocus
@@ -34,6 +35,7 @@
           <p class="mb-2">Didn't get it? Check your spam folder, or request a new code.</p>
           <% if (signupStatus.sendsLeft > 0) { %>
             <form action="/register/resend" method="post" class="d-inline">
+              <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
               <button type="submit" class="btn btn-link btn-sm p-0 align-baseline">Send a new code</button>
             </form>
             <% if (signupStatus.resendInSeconds > 0) { %>

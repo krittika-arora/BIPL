@@ -31,6 +31,7 @@
           <a href="/courses/<%= course._id %>/edit" class="btn btn-outline-primary btn-sm">Edit</a>
           <form action="/courses/<%= course._id %>/status" method="post"
                 <% if (NEXT_ACTION.confirm) { %>onsubmit="return confirm('<%= NEXT_ACTION.confirm %>');"<% } %>>
+            <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
             <input type="hidden" name="to" value="<%= NEXT_ACTION.to %>">
             <button type="submit" class="btn btn-sm <%= NEXT_ACTION.style %>"><%= NEXT_ACTION.label %></button>
           </form>
@@ -70,6 +71,7 @@
 
   <% if (canComment) { %>
     <form action="/courses/<%= course._id %>/comments" method="post" class="mt-3">
+      <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
       <label for="message" class="form-label small fw-semibold">Add a comment</label>
       <textarea id="message" name="message" rows="3" maxlength="1000" required class="form-control mb-2"
                 placeholder="<%= isInstructor ? 'Note for the record, or a reply to learners' : 'Ask a question or share a tip' %>"></textarea>

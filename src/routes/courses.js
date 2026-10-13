@@ -5,6 +5,7 @@ const commentController = require('../controllers/commentController');
 const lessonRoutes = require('./lessons');
 const { requireAuth, requireRole } = require('../middleware/auth');
 const { optionalListFile } = require('../middleware/upload');
+const { verifyCsrf } = require('../middleware/csrf');
 const { courseRules } = require('../validators/courseValidators');
 const { enrolByEmailRules } = require('../validators/enrollmentValidators');
 const { commentRules } = require('../validators/commentValidators');
@@ -38,6 +39,7 @@ router.post(
   '/:id/enrollments/bulk',
   instructorOnly,
   optionalListFile('file'),
+  verifyCsrf, // multipart: checked once the form fields are parsed
   enrollmentController.bulkEnrol,
 );
 

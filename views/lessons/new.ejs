@@ -13,6 +13,7 @@
         <h1 class="h4 mb-1">New lesson</h1>
         <p class="text-muted small mb-4">The lesson is added at the end of the course. You can reorder it afterwards.</p>
         <form action="/courses/<%= course.id %>/lessons" method="post" novalidate>
+          <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
           <%- include('_form') %>
           <div class="d-flex gap-2">
             <button type="submit" class="btn btn-primary">Add lesson</button>

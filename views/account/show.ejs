@@ -35,6 +35,7 @@
         <% } %>
         <form action="/account/delete" method="post" novalidate
               onsubmit="return confirm('Delete your account permanently? This cannot be undone.');">
+          <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
           <div class="mb-3">
             <label for="password" class="form-label">Confirm with your password</label>
             <input type="password" id="password" name="password" autocomplete="current-password" required

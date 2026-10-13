@@ -10,6 +10,7 @@
         </p>
 
         <form action="/forgot-password/reset" method="post" novalidate>
+          <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
           <div class="mb-3">
             <label for="code" class="form-label">Code from the email</label>
             <input type="text" id="code" name="code" required autofocus
@@ -42,6 +43,7 @@
           <p class="mb-2">Didn't get it? Check your spam folder, or request a new code.</p>
           <% if (canResend) { %>
             <form action="/forgot-password/resend" method="post" class="d-inline">
+              <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
               <button type="submit" class="btn btn-link btn-sm p-0 align-baseline">Send a new code</button>
             </form>
             <% if (resendInSeconds > 0) { %><span>(available in <%= resendInSeconds %> seconds)</span><% } %>

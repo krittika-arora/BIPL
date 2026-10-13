@@ -7,6 +7,8 @@ const env = require('./config/env');
 const flash = require('./middleware/flash');
 const { loadCurrentUser } = require('./middleware/auth');
 const alertBadge = require('./middleware/alertBadge');
+const { csrfProtection } = require('./middleware/csrf');
+const securityHeaders = require('./middleware/securityHeaders');
 const routes = require('./routes');
 const { notFound, errorHandler } = require('./middleware/errors');
 const viewHelpers = require('./utils/viewHelpers');
@@ -22,7 +24,11 @@ function createApp() {
   app.set('view engine', 'ejs');
   app.set('views', path.join(__dirname, '..', 'views'));
   app.disable('x-powered-by');
+  app.use(securityHeaders);
   Object.assign(app.locals, viewHelpers, progressHelpers, { isCourseOwner });
+  // Replaced per request by the CSRF middleware; this default only matters for pages rendered
+  // before it runs (e.g. a very early error), so they never fail to render.
+  app.locals.csrfToken = () => '';
   if (env.isProduction) app.set('trust proxy', 1);
 
   app.use(express.static(path.join(__dirname, '..', 'public')));
@@ -48,11 +54,13 @@ function createApp() {
   );
   app.use(flash);
   app.use(loadCurrentUser);
-  app.use(alertBadge);
   app.use((req, res, next) => {
     res.locals.currentPath = req.path;
     next();
   });
+  // After the user and path are known, so a rejected form still gets a normal error page.
+  app.use(csrfProtection);
+  app.use(alertBadge);
 
   app.use(routes);
 
