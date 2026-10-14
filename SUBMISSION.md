@@ -80,4 +80,4 @@ Approximately 13–14 hours spread across multiple development sessions.
 
 ## What are you least happy with in this codebase, and why?
 
-The seed data's history is created by shifting timestamps after seeding, which is a workaround rather than a clean design.
+Two lessons added to the same course at the same moment could get the same position, because lesson order is kept by the code rather than by a database rule.
